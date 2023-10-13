@@ -1,8 +1,12 @@
 package ru.mclord.classic;
 
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 public class Helper {
+    /* package-private */ static int PREFERRED_NETWORK_BUFFER_LENGTH = 8192;
+
     private Helper() {
     }
 
@@ -18,5 +22,33 @@ public class Helper {
         }
 
         return pluginsDir.listFiles(file -> file.getName().endsWith(".jar"));
+    }
+
+    /*
+     * Should be called by the main thread.
+     */
+    public static void setPreferredNetworkBufferLength(int bufferLength) {
+        if (bufferLength <= PREFERRED_NETWORK_BUFFER_LENGTH) return;
+
+        PREFERRED_NETWORK_BUFFER_LENGTH = bufferLength;
+    }
+
+    /*
+     * Should be called by the main thread.
+     *
+     * But it would be better if it was never called.
+     */
+    public static boolean writeRawDataAndFlush(byte[] bytes) throws IOException {
+        McLordClassic game = McLordClassic.game();
+        NetworkingThread thread = game.networkingThread;
+        if (thread == null) return false;
+
+        DataOutputStream stream = thread.output;
+        if (stream == null) return false;
+
+        stream.write(bytes);
+        stream.flush();
+
+        return true;
     }
 }

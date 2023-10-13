@@ -28,6 +28,8 @@ public class McLordClassic extends Game {
 
 	private Properties gameProperties;
 	private final Queue<Runnable> taskList = new ArrayDeque<>();
+	@SuppressWarnings("FieldCanBeLocal")
+	/* package-private */ NetworkingThread networkingThread;
 	/* package-private */ Player thePlayer;
 	/* package-private */ GameStage stage;
 	/* package-private */ String disconnectReason;
@@ -67,7 +69,8 @@ public class McLordClassic extends Game {
 		PluginManager.getInstance().loadPlugins();
 
 		stage = GameStage.CONNECTING_TO_THE_SERVER;
-		(new NetworkingThread()).start();
+		networkingThread = new NetworkingThread();
+		networkingThread.start();
 
 		setScreen(new LoadingScreen());
 	}

@@ -34,5 +34,15 @@ public abstract class PacketHandler {
         return fastHandler;
     }
 
+    public final void handle0(DataInputStream stream) {
+        McLordClassic.game().addTask(() -> handle(stream));
+    }
+
+    /*
+     * Call this method ONLY if you're completely
+     * sure the code will be executed by the main thread.
+     *
+     * Otherwise, call handle0().
+     */
     public abstract void handle(DataInputStream stream);
 }

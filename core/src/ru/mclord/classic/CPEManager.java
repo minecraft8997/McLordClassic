@@ -22,12 +22,6 @@ public class CPEManager implements Manager {
     }
 
     public Set<CPE> getSupportedExtensions() {
-        if (checkStage()) {
-            System.err.println("[Warning] Detected an attempt to collect all " +
-                    "supported CPE during pre-initialization. At this stage " +
-                    "the game cannot provide accurate data");
-        }
-
         return new HashSet<>(supportedExtensions);
     }
 
@@ -50,8 +44,6 @@ public class CPEManager implements Manager {
 
     @Override
     public boolean checkStage() {
-        McLordClassic.GameStage stage = McLordClassic.game().stage;
-
-        return stage == McLordClassic.GameStage.PRE_INITIALIZATION;
+        return McLordClassic.game().stage == McLordClassic.GameStage.PRE_INITIALIZATION;
     }
 }

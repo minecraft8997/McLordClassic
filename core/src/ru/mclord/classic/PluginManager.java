@@ -122,6 +122,10 @@ public class PluginManager {
         }
     }
 
+    public Plugin getPlugin(String name) {
+        return pluginMap.get(name);
+    }
+
     /* package-private */ void initPlugins() {
         McLordClassic game = McLordClassic.game();
         if (game.stage != McLordClassic.GameStage.PRE_INITIALIZATION) {

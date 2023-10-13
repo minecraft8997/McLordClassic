@@ -4,23 +4,28 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.net.Socket;
 import com.badlogic.gdx.net.SocketHints;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import ru.mclord.classic.events.DisconnectEvent;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.net.ConnectException;
 
 public class NetworkingThread extends Thread {
-    private boolean reportedDisconnected = false;
+    public static final byte PLAYER_IDENTIFICATION = 0x00;
 
-    private DataInputStream input;
-    private DataOutputStream output;
+    private static boolean reportedDisconnected = false;
+
+    @SuppressWarnings("FieldCanBeLocal") /* package-private */ DataInputStream input;
+    @SuppressWarnings("FieldCanBeLocal") /* package-private */ DataOutputStream output;
+
+    public NetworkingThread() {
+        setName("Networking Thread");
+        setDaemon(true);
+    }
 
     @Override
     public void run() {
-        McLordClassic game = McLordClassic.game();
+        PacketManager packets = PacketManager.getInstance();
 
         Socket socket = null;
         try {
@@ -31,18 +36,32 @@ public class NetworkingThread extends Thread {
                     new SocketHints()
             );
             input = new DataInputStream(socket.getInputStream());
-            output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            output = new DataOutputStream(new BufferedOutputStream(socket
+                    .getOutputStream(), Helper.PREFERRED_NETWORK_BUFFER_LENGTH));
 
-            output.write();
+            packets.writeAndFlush(output, PLAYER_IDENTIFICATION,
+                    (byte) 0x07,
+                    GameParameters.getUsername(),
+                    GameParameters.getMppass(),
+                    (byte) 0x42
+            );
 
-            // todo init cpe
-            game.addTask(() -> PluginManager.getInstance().initPlugins());
-        } catch (GdxRuntimeException e) {
-            e.printStackTrace();
-
-            if (e.getCause() instanceof ConnectException) {
-                reportDisconnected(e.toString());
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                byte packetId = input.readByte();
+                PacketHandler handler = packets.attemptHandleFastly(packetId, input);
+                if (handler != null) { // means fastHandler == false
+                    byte[] payload = new byte[handler.packetLength];
+                    input.readFully(payload);
+                    packets.handle(packetId, handler, payload);
+                }
             }
+
+            //game.addTask(() -> PluginManager.getInstance().initPlugins());
+        } catch (Throwable t) {
+            t.printStackTrace();
+
+            reportDisconnected(t.toString());
         } finally {
             if (socket != null) {
                 socket.dispose();
@@ -52,7 +71,7 @@ public class NetworkingThread extends Thread {
         }
     }
 
-    private void reportDisconnected(String reason) {
+    public static void reportDisconnected(String reason) {
         if (reportedDisconnected) return;
 
         EventManager.getInstance().fireEvent(new DisconnectEvent(reason));
