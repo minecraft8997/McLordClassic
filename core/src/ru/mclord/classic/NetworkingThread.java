@@ -39,7 +39,7 @@ public class NetworkingThread extends Thread {
             output = new DataOutputStream(new BufferedOutputStream(socket
                     .getOutputStream(), Helper.PREFERRED_NETWORK_BUFFER_LENGTH));
 
-            packets.writeAndFlush(output, PLAYER_IDENTIFICATION,
+            packets.writeAndFlush(true, output, PLAYER_IDENTIFICATION,
                     (byte) 0x07,
                     GameParameters.getUsername(),
                     GameParameters.getMppass(),

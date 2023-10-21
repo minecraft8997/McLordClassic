@@ -64,21 +64,50 @@ public class PacketManager implements Manager {
         return handler;
     }
 
+    /*
+     * If you're calling the method from any thread other
+     * than the main one, you should leave the first ("queue")
+     * parameter equal to <code>true</code>.
+     */
     public void writeAndFlush(
+            boolean queue,
             DataOutputStream stream,
             byte packetId,
             Object... parameters
     ) throws IOException {
+        if (queue) {
+            queueWrite(stream, true, packetId, parameters);
+
+            return;
+        }
         write(stream, packetId, parameters);
         stream.flush();
     }
 
     /*
+     * Can be called by any thread.
+     */
+    public void queueWrite(
+            DataOutputStream stream, boolean flush, byte packetId, Object... parameters
+    ) {
+        McLordClassic.game().addTask(() -> {
+            try {
+                write(stream, packetId, parameters);
+                if (flush) stream.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    /*
      * Should be called by the main thread.
      */
-    public void write(DataOutputStream stream, byte packetId, Object... parameters) {
+    public void write(
+            DataOutputStream stream, byte packetId, Object... parameters
+    ) throws IOException {
         if (checkStage()) {
-            throw new IllegalStateException("Cannot write packets during pre-initialization");
+            throw new IllegalStateException("Cannot write packets during current game stage");
         }
 
         PacketWriter writer = writerMap.get(packetId);
@@ -95,7 +124,7 @@ public class PacketManager implements Manager {
                 throw new IllegalStateException("Invalid parameters");
             }
         }
-        writer.write(stream, parameters);
+        writer.write0(stream, parameters);
     }
 
     public PacketHandler attemptHandleFastly(byte packetId, DataInputStream stream) {
@@ -120,6 +149,9 @@ public class PacketManager implements Manager {
 
     @Override
     public boolean checkStage() {
-        return McLordClassic.game().stage == McLordClassic.GameStage.PRE_INITIALIZATION;
+        McLordClassic.GameStage stage = McLordClassic.game().stage;
+
+        return stage == McLordClassic.GameStage.PRE_INITIALIZATION ||
+                stage == McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS;
     }
 }

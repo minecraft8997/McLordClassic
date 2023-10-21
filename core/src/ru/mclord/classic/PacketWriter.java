@@ -1,8 +1,26 @@
 package ru.mclord.classic;
 
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 public abstract class PacketWriter {
+    public static class ParameterContainer {
+        private final Object[] params;
+        private int currentIdx;
+
+        public ParameterContainer(Object[] params) {
+            this.params = params;
+        }
+
+        public int getLength() {
+            return params.length;
+        }
+
+        public Object get(int i) {
+            return params[i];
+        }
+    }
+
     /* package-private */ final byte packetId;
     /* package-private */ final boolean fastWriter;
 
@@ -23,6 +41,11 @@ public abstract class PacketWriter {
         return fastWriter;
     }
 
+    @SuppressWarnings("unchecked")
+    protected final <T> T nextParameter(ParameterContainer container) {
+        return (T) container.params[container.currentIdx++];
+    }
+
     /*
      * Won't be called if fastWriter == true.
      */
@@ -33,5 +56,13 @@ public abstract class PacketWriter {
     /*
      * No need to flush the stream after writing the data.
      */
-    public abstract void write(DataOutputStream stream, Object... parameters);
+    public final void write0(DataOutputStream stream, Object... params) throws IOException {
+        write(stream, new ParameterContainer(params));
+    }
+
+    public void write(
+            DataOutputStream stream, ParameterContainer params
+    ) throws IOException {
+        stream.write(packetId);
+    }
 }

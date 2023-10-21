@@ -1,6 +1,7 @@
 package ru.mclord.classic;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 
 public abstract class PacketHandler {
     /* package-private */ final byte packetId;
@@ -35,7 +36,13 @@ public abstract class PacketHandler {
     }
 
     public final void handle0(DataInputStream stream) {
-        McLordClassic.game().addTask(() -> handle(stream));
+        McLordClassic.game().addTask(() -> {
+            try {
+                handle(stream);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /*
@@ -44,5 +51,5 @@ public abstract class PacketHandler {
      *
      * Otherwise, call handle0().
      */
-    public abstract void handle(DataInputStream stream);
+    public abstract void handle(DataInputStream stream) throws IOException;
 }

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class Helper {
+    public static final int PROTOCOL_STRING_LENGTH = 64;
     /* package-private */ static int PREFERRED_NETWORK_BUFFER_LENGTH = 8192;
 
     private Helper() {
@@ -34,7 +35,8 @@ public class Helper {
     }
 
     /*
-     * Should be called by the main thread.
+     * Should be called by the main thread (just like any
+     * network packet except PID=0x00 should be written by the main thread).
      *
      * But it would be better if it was never called.
      */
@@ -50,5 +52,18 @@ public class Helper {
         stream.flush();
 
         return true;
+    }
+
+    public static byte[] toProtocolString(String str) {
+        byte[] result = new byte[PROTOCOL_STRING_LENGTH];
+        for (int i = 0; i < str.length(); i++) {
+            result[i] = (byte) str.charAt(i);
+        }
+        for (int i = str.length(); i < PROTOCOL_STRING_LENGTH; i++) {
+            result[i] = 0x20;
+            // result[i] = ' '; // should be exactly the same thing
+        }
+
+        return result;
     }
 }

@@ -3,7 +3,7 @@ package ru.mclord.classic;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BlockManager {
+public class BlockManager implements Manager {
     private static final BlockManager INSTANCE = new BlockManager();
 
     private final Map<Short, Block> REGISTERED_BLOCKS = new HashMap<>();
@@ -20,9 +20,7 @@ public class BlockManager {
     }
 
     public void registerBlock(Block block) {
-        McLordClassic.GameStage stage = McLordClassic.game().stage;
-        if (stage != McLordClassic.GameStage.PRE_INITIALIZATION &&
-                stage != McLordClassic.GameStage.INITIALIZATION) {
+        if (!checkStage()) {
             throw new IllegalStateException(
                     "Cannot register blocks during current game stage");
         }
@@ -32,5 +30,14 @@ public class BlockManager {
         }
 
         REGISTERED_BLOCKS.put(block.id, block);
+    }
+
+    @Override
+    public boolean checkStage() {
+        McLordClassic.GameStage stage = McLordClassic.game().stage;
+
+        return stage == McLordClassic.GameStage.PRE_INITIALIZATION ||
+                stage == McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS ||
+                stage == McLordClassic.GameStage.INITIALIZATION;
     }
 }
