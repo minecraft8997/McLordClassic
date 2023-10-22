@@ -36,11 +36,11 @@ public abstract class PacketHandler {
     }
 
     /*
-     * If fastHandler == true, calling this method will most likely
-     * result in a big hang-up inside the main/rendering thread.
+     * If fastHandler == true, calling this method will most
+     * likely cause a big hang-up inside the main/rendering thread.
      */
     public final void handle0(DataInputStream stream) {
-        McLordClassic.game().addTask(() -> {
+        McLordClassic.game().addTask((NetworkingRunnable) () -> {
             try {
                 handle(stream);
             } catch (IOException e) {

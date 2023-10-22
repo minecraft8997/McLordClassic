@@ -81,10 +81,18 @@ public class McLordClassic extends Game {
 	}
 
 	@Override
+	@SuppressWarnings("SynchronizeOnNonFinalField")
 	public void render() {
 		synchronized (taskList) {
 			while (!taskList.isEmpty()) {
-				taskList.poll().run();
+				Runnable task = taskList.poll();
+				task.run();
+				if (task instanceof NetworkingRunnable) {
+					synchronized (networkingThread) {
+						networkingThread.finishedExecuting = true;
+						networkingThread.notify();
+					}
+				}
 			}
 		}
 

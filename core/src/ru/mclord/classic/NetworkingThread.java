@@ -13,6 +13,7 @@ import java.io.DataOutputStream;
 public class NetworkingThread extends Thread {
     public static final byte PLAYER_IDENTIFICATION = 0x00;
 
+    /* package-private */ volatile boolean finishedExecuting;
     private static boolean reportedDisconnected = false;
 
     @SuppressWarnings("FieldCanBeLocal") /* package-private */ volatile DataInputStream input;
@@ -53,7 +54,7 @@ public class NetworkingThread extends Thread {
                 if (handler != null) { // means fastHandler == false
                     byte[] payload = new byte[handler.packetLength];
                     input.readFully(payload);
-                    packets.handle(packetId, handler, payload);
+                    packets.handle(this, packetId, handler, payload);
                 }
             }
         } catch (Throwable t) {

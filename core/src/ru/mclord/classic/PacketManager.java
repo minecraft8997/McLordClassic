@@ -142,13 +142,25 @@ public class PacketManager implements Manager {
         return null;
     }
 
-    public void handle(byte packetId, PacketHandler handler, byte[] payload) {
+    @ShouldBeCalledBy(thread = "networking")
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    public void handle(
+            NetworkingThread thread, byte packetId, PacketHandler handler, byte[] payload
+    ) throws InterruptedException {
         if (handler == null) {
             handler = getHandler(packetId, true);
         }
         ByteArrayInputStream stream0 = new ByteArrayInputStream(payload);
         DataInputStream stream = new DataInputStream(stream0);
-        handler.handle0(stream);
+        synchronized (thread) {
+            // pause NetworkingThread until the main thread handles the packet
+
+            thread.finishedExecuting = false;
+            handler.handle0(stream);
+            while (!thread.finishedExecuting) {
+                thread.wait();
+            }
+        }
 
         // we don't have to close a ByteArrayInputStream
     }
