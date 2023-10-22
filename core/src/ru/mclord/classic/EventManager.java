@@ -30,7 +30,7 @@ public class EventManager implements Manager {
         Objects.requireNonNull(event);
 
         if ("true".equalsIgnoreCase(System.getProperty("mclordDebugEvents"))) {
-            System.out.println("Firing event " + event.getClass().getName() + "...");
+            System.out.println("Firing event " + event.getClass().getName());
         }
 
         Class<? extends Event> eventClass = event.getClass();

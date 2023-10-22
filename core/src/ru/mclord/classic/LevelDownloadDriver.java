@@ -1,13 +1,14 @@
 package ru.mclord.classic;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 
 public abstract class LevelDownloadDriver {
-    private static LevelDownloadDriver driver;
+    /* package-private */ static volatile LevelDownloadDriver driver;
 
-    public abstract void downloadLevel(DataInputStream stream);
+    public abstract Level downloadLevel(DataInputStream stream) throws IOException;
 
-    public static void setDriver(LevelDownloadDriver driver) {
+    public static synchronized void setDriver(LevelDownloadDriver driver) {
         if (LevelDownloadDriver.driver != null) {
             throw new IllegalStateException("LevelDownloadDriver is already set");
         }

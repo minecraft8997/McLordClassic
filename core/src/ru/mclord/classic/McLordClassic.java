@@ -28,10 +28,10 @@ public class McLordClassic extends Game {
 
 	private Properties gameProperties;
 	private final Queue<Runnable> taskList = new ArrayDeque<>();
-	@SuppressWarnings("FieldCanBeLocal")
+	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
 	/* package-private */ NetworkingThread networkingThread;
 	/* package-private */ Player thePlayer;
-	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
+	/* package-private */ Level level;
 	/* package-private */ String disconnectReason;
 
 	private McLordClassic() {

@@ -33,6 +33,8 @@ public class PluginManager {
         }
         game.stage = McLordClassic.GameStage.PRE_INITIALIZATION;
 
+        System.out.println("Entering Pre-initialization stage");
+
         File[] files = Helper.listPlugins();
         if (files == null || files.length == 0) {
             System.err.println("Could not locate any plugins, " +
@@ -58,7 +60,6 @@ public class PluginManager {
         }
         System.out.println("Located plugins: " + urls.length);
 
-        System.out.println("Loading...");
         try (URLClassLoader child = new URLClassLoader(urls, getClass().getClassLoader())) {
             for (File file : files) {
                 try (ZipFile zipFile = new ZipFile(file)) {
@@ -88,7 +89,7 @@ public class PluginManager {
 
                         continue;
                     }
-                    System.out.printf("Loading %s v%s (from %s) by %s...%s",
+                    System.out.printf("Loading %s v%s (from %s) by %s%s",
                             name, version, file.getName(), author, System.lineSeparator());
                     if (pluginMap.containsKey(name)) {
                         throw new RuntimeException("Detected " +
@@ -134,7 +135,7 @@ public class PluginManager {
         game.stage = McLordClassic.GameStage.INITIALIZATION;
 
         System.out.println();
-        System.out.println("Initializing plugins...");
+        System.out.println("Entering Initialization stage");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
                 entry.getValue().init();
@@ -161,7 +162,7 @@ public class PluginManager {
         game.stage = McLordClassic.GameStage.POST_INITIALIZATION;
 
         System.out.println();
-        System.out.println("Entering Post-initialization stage...");
+        System.out.println("Entering Post-initialization stage");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
                 entry.getValue().postInit();

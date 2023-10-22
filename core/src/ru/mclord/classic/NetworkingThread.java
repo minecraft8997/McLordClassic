@@ -47,8 +47,7 @@ public class NetworkingThread extends Thread {
                     (byte) 0x42
             );
 
-            //noinspection InfiniteLoopStatement
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 byte packetId = input.readByte();
                 PacketHandler handler = packets.attemptHandleFastly(packetId, input);
                 if (handler != null) { // means fastHandler == false
@@ -73,7 +72,9 @@ public class NetworkingThread extends Thread {
     public static synchronized void reportDisconnected(String reason) {
         if (reportedDisconnected) return;
 
+        McLordClassic.game().networkingThread.interrupt();
         EventManager.getInstance().fireEvent(new DisconnectEvent(reason));
+
         reportedDisconnected = true;
     }
 }
