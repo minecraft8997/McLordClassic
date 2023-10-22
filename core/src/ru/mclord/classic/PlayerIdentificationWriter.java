@@ -1,15 +1,12 @@
-package ru.mclord.classic.writers;
-
-import ru.mclord.classic.Helper;
-import ru.mclord.classic.PacketWriter;
+package ru.mclord.classic;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class IdentificationWriter extends PacketWriter {
+public class PlayerIdentificationWriter extends PacketWriter {
     public static final byte PACKET_ID = 0x00;
 
-    public IdentificationWriter() {
+    public PlayerIdentificationWriter() {
         super(PACKET_ID);
     }
 

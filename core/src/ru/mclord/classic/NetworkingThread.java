@@ -15,8 +15,8 @@ public class NetworkingThread extends Thread {
 
     private static boolean reportedDisconnected = false;
 
-    @SuppressWarnings("FieldCanBeLocal") /* package-private */ DataInputStream input;
-    @SuppressWarnings("FieldCanBeLocal") /* package-private */ DataOutputStream output;
+    @SuppressWarnings("FieldCanBeLocal") /* package-private */ volatile DataInputStream input;
+    @SuppressWarnings("FieldCanBeLocal") /* package-private */ volatile DataOutputStream output;
 
     public NetworkingThread() {
         setName("Networking Thread");
@@ -56,8 +56,6 @@ public class NetworkingThread extends Thread {
                     packets.handle(packetId, handler, payload);
                 }
             }
-
-            //game.addTask(() -> PluginManager.getInstance().initPlugins());
         } catch (Throwable t) {
             t.printStackTrace();
 
@@ -71,7 +69,7 @@ public class NetworkingThread extends Thread {
         }
     }
 
-    public static void reportDisconnected(String reason) {
+    public static synchronized void reportDisconnected(String reason) {
         if (reportedDisconnected) return;
 
         EventManager.getInstance().fireEvent(new DisconnectEvent(reason));

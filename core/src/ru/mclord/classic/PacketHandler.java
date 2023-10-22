@@ -35,6 +35,10 @@ public abstract class PacketHandler {
         return fastHandler;
     }
 
+    /*
+     * If fastHandler == true, calling this method will most likely
+     * result in a big hang-up inside the main/rendering thread.
+     */
     public final void handle0(DataInputStream stream) {
         McLordClassic.game().addTask(() -> {
             try {
@@ -46,10 +50,8 @@ public abstract class PacketHandler {
     }
 
     /*
-     * Call this method ONLY if you're completely
-     * sure the code will be executed by the main thread.
-     *
-     * Otherwise, call handle0().
+     * If fastHandler == true, the method will be called by
+     * NetworkingThread, otherwise it's going to be called by main thread.
      */
     public abstract void handle(DataInputStream stream) throws IOException;
 }

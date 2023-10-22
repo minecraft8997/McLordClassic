@@ -128,13 +128,13 @@ public class PluginManager {
 
     /* package-private */ void initPlugins() {
         McLordClassic game = McLordClassic.game();
-        if (game.stage != McLordClassic.GameStage.PRE_INITIALIZATION) {
+        if (game.stage != McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS) {
             throw new IllegalStateException();
         }
         game.stage = McLordClassic.GameStage.INITIALIZATION;
 
         System.out.println();
-        System.out.println("Initializing...");
+        System.out.println("Initializing plugins...");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
                 entry.getValue().init();

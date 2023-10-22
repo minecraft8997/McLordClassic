@@ -12,7 +12,6 @@ public class LoadingScreen implements Screen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 1, 0, 1);
-        System.out.println("Called2");
     }
 
     @Override

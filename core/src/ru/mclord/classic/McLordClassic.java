@@ -3,7 +3,6 @@ package ru.mclord.classic;
 import com.badlogic.gdx.Game;
 import ru.mclord.classic.events.DisconnectEvent;
 import ru.mclord.classic.events.PluginInitializationFinishedEvent;
-import ru.mclord.classic.writers.IdentificationWriter;
 
 import java.util.*;
 
@@ -14,13 +13,17 @@ public class McLordClassic extends Game {
 		CONNECTING_TO_THE_SERVER,
 		ENABLING_PROTOCOL_EXTENSIONS,
 		INITIALIZATION,
-		POST_INITIALIZATION,
 		DOWNLOADING_THE_LEVEL,
+		POST_INITIALIZATION,
 		IN_GAME,
 		DISCONNECTED
 	}
 
 	public static final boolean DEBUG = true;
+	public static final String APP_NAME = "McLordClassic";
+	public static final String VERSION = "0.1";
+	public static final byte PROTOCOL_VERSION = 7;
+
 	private static final McLordClassic INSTANCE = new McLordClassic();
 
 	private Properties gameProperties;
@@ -63,7 +66,12 @@ public class McLordClassic extends Game {
 	public void create() {
 		PluginManager.getInstance().loadPlugins();
 
-		PacketManager.getInstance().registerWriter(new IdentificationWriter());
+		PacketManager.getInstance().registerWriter(new PlayerIdentificationWriter());
+
+		PacketManager.getInstance().registerHandler(new ExtInfoHandler());
+		PacketManager.getInstance().registerHandler(new ExtEntryHandler());
+		PacketManager.getInstance().registerHandler(new PingPacketHandler());
+		PacketManager.getInstance().registerHandler(new ServerIdentificationHandler());
 
 		stage = GameStage.CONNECTING_TO_THE_SERVER;
 		networkingThread = new NetworkingThread();

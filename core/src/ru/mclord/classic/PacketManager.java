@@ -20,6 +20,7 @@ public class PacketManager implements Manager {
         return INSTANCE;
     }
 
+    @ShouldBeCalledBy(thread = "main")
     public void registerWriter(PacketWriter writer) {
         if (!checkStage()) {
             throw new IllegalStateException(
@@ -33,6 +34,7 @@ public class PacketManager implements Manager {
         writerMap.put(writer.packetId, writer);
     }
 
+    @ShouldBeCalledBy(thread = "main")
     public boolean isWriterRegistered(byte packetId) {
         return writerMap.containsKey(packetId);
     }
@@ -42,19 +44,23 @@ public class PacketManager implements Manager {
             throw new IllegalStateException(
                     "Cannot register packet handlers during current game stage");
         }
-        if (handlerMap.containsKey(handler.packetId)) {
-            throw new IllegalArgumentException("A PacketHandler for " +
-                    "packetId=" + handler.packetId + " is already registered");
-        }
+        synchronized (this) {
+            if (handlerMap.containsKey(handler.packetId)) {
+                throw new IllegalArgumentException("A PacketHandler for " +
+                        "packetId=" + handler.packetId + " is already registered");
+            }
 
-        handlerMap.put(handler.packetId, handler);
+            handlerMap.put(handler.packetId, handler);
+        }
     }
 
     public boolean isHandlerRegistered(byte packetId) {
         return getHandler(packetId, false) != null;
     }
 
-    /* package-private */ PacketHandler getHandler(byte packetId, boolean throwException) {
+    public synchronized PacketHandler getHandler(
+            byte packetId, boolean throwException
+    ) {
         PacketHandler handler = handlerMap.get(packetId);
         if (handler == null && throwException) {
             throw new IllegalArgumentException("Could not " +
@@ -100,9 +106,7 @@ public class PacketManager implements Manager {
         });
     }
 
-    /*
-     * Should be called by the main thread.
-     */
+    @ShouldBeCalledBy(thread = "main")
     public void write(
             DataOutputStream stream, byte packetId, Object... parameters
     ) throws IOException {
@@ -127,11 +131,13 @@ public class PacketManager implements Manager {
         writer.write0(stream, parameters);
     }
 
-    public PacketHandler attemptHandleFastly(byte packetId, DataInputStream stream) {
+    public PacketHandler attemptHandleFastly(
+            byte packetId, DataInputStream stream
+    ) throws IOException {
         PacketHandler handler = getHandler(packetId, true);
         if (!handler.fastHandler) return handler;
 
-        handler.handle0(stream);
+        handler.handle(stream);
 
         return null;
     }

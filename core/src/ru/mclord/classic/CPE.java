@@ -4,10 +4,10 @@ import java.util.Objects;
 
 public class CPE {
     /* package-private */ final String name;
-    /* package-private */ final short version;
+    /* package-private */ final int version;
     /* package-private */ boolean active;
 
-    public CPE(String name, short version) {
+    public CPE(String name, int version) {
         this.name = name;
         this.version = version;
     }
@@ -16,7 +16,7 @@ public class CPE {
         return name;
     }
 
-    public final short getVersion() {
+    public final int getVersion() {
         return version;
     }
 

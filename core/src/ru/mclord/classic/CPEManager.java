@@ -15,7 +15,7 @@ public class CPEManager implements Manager {
         return INSTANCE;
     }
 
-    public boolean isExtensionSupported(String name, short version) {
+    public boolean isExtensionSupported(String name, int version) {
         // since equals() and hashCode() methods are
         // marked final, we can freely use this approach
         return supportedExtensions.contains(new CPE(name, version));
@@ -27,6 +27,16 @@ public class CPEManager implements Manager {
 
     /* package-private */ Set<CPE> getSupportedExtensionsFast() {
         return supportedExtensions;
+    }
+
+    /* package-private */ void activateExtension(String name, int version) {
+        for (CPE extension : supportedExtensions) {
+            if (extension.name.equals(name) && extension.version == version) {
+                extension.activate();
+
+                break;
+            }
+        }
     }
 
     public void registerExtension(CPE extension) {

@@ -1,8 +1,6 @@
 package ru.mclord.classic;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class Helper {
     public static final int PROTOCOL_STRING_LENGTH = 64;
@@ -25,9 +23,7 @@ public class Helper {
         return pluginsDir.listFiles(file -> file.getName().endsWith(".jar"));
     }
 
-    /*
-     * Should be called by the main thread.
-     */
+    @ShouldBeCalledBy(thread = "main")
     public static void setPreferredNetworkBufferLength(int bufferLength) {
         if (bufferLength <= PREFERRED_NETWORK_BUFFER_LENGTH) return;
 
@@ -36,10 +32,11 @@ public class Helper {
 
     /*
      * Should be called by the main thread (just like any
-     * network packet except PID=0x00 should be written by the main thread).
+     * network packet should be written by the main thread).
      *
      * But it would be better if it was never called.
      */
+    @ShouldBeCalledBy(thread = "main")
     public static boolean writeRawDataAndFlush(byte[] bytes) throws IOException {
         McLordClassic game = McLordClassic.game();
         NetworkingThread thread = game.networkingThread;
@@ -65,5 +62,25 @@ public class Helper {
         }
 
         return result;
+    }
+
+    public static String readProtocolString(DataInputStream stream) throws IOException {
+        byte[] buffer = new byte[PROTOCOL_STRING_LENGTH];
+        stream.readFully(buffer);
+
+        int end = -1;
+        for (int i = PROTOCOL_STRING_LENGTH - 1; i >= 0; i--) {
+            if (buffer[i] != 0x20) {
+                end = i + 1;
+
+                break;
+            }
+        }
+        if (end == -1) return "";
+
+        byte[] result = new byte[end];
+        System.arraycopy(buffer, 0, result, 0, result.length);
+
+        return new String(result);
     }
 }
