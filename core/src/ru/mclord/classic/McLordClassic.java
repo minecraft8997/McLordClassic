@@ -66,14 +66,6 @@ public class McLordClassic extends Game {
 	public void create() {
 		PluginManager.getInstance().loadPlugins();
 
-		PacketManager.getInstance().registerWriter(new PlayerIdentificationWriter());
-
-		PacketManager.getInstance().registerHandler(new ExtInfoHandler());
-		PacketManager.getInstance().registerHandler(new ExtEntryHandler());
-		PacketManager.getInstance().registerHandler(new PingPacketHandler());
-		PacketManager.getInstance().registerHandler(new ServerIdentificationHandler());
-		TextureManager.getInstance().load("https://static.classicube.net/default.zip");
-
 		stage = GameStage.CONNECTING_TO_THE_SERVER;
 		networkingThread = new NetworkingThread();
 		networkingThread.start();

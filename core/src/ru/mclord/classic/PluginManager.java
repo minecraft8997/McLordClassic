@@ -33,13 +33,13 @@ public class PluginManager {
         }
         game.stage = McLordClassic.GameStage.PRE_INITIALIZATION;
 
-        System.out.println("Entering Pre-initialization stage");
+        System.out.println("Calling preInit() on plugins");
 
         File[] files = Helper.listPlugins();
         if (files == null || files.length == 0) {
             System.err.println("Could not locate any plugins, " +
                     "the game will continue loading without them. " +
-                    "Since the game is mostly based on plugins, it won't be playable");
+                    "Since the game is mostly based on plugins, it probably won't be playable");
 
             return;
         }
@@ -123,19 +123,22 @@ public class PluginManager {
         }
     }
 
+    @ShouldBeCalledBy(thread = "main")
     public Plugin getPlugin(String name) {
         return pluginMap.get(name);
     }
 
+    // is called by a plugin
     /* package-private */ void initPlugins() {
         McLordClassic game = McLordClassic.game();
-        if (game.stage != McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS) {
+        if (game.stage != McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS &&
+                game.stage != McLordClassic.GameStage.CONNECTING_TO_THE_SERVER) {
             throw new IllegalStateException();
         }
         game.stage = McLordClassic.GameStage.INITIALIZATION;
 
         System.out.println();
-        System.out.println("Entering Initialization stage");
+        System.out.println("Calling init() on plugins");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
                 entry.getValue().init();
@@ -162,7 +165,7 @@ public class PluginManager {
         game.stage = McLordClassic.GameStage.POST_INITIALIZATION;
 
         System.out.println();
-        System.out.println("Entering Post-initialization stage");
+        System.out.println("Calling postInit() on plugins");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
                 entry.getValue().postInit();

@@ -50,10 +50,14 @@ public class TextureManager implements Disposable {
             throw new RuntimeException(e);
         }
 
+        int width = image.getWidth();
+        int height = image.getHeight();
+        /*
         if (image.getWidth() != IMAGE_WIDTH || image.getHeight() != IMAGE_HEIGHT) {
             throw new IllegalArgumentException("The " +
                     "image must be " + IMAGE_WIDTH + "x" + IMAGE_HEIGHT);
         }
+         */
         for (int i = 0; i < TEXTURE_COUNT; i++) {
             Pixmap pixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
 
@@ -61,17 +65,22 @@ public class TextureManager implements Disposable {
             int yOffset = (i / 16) * TEXTURE_SIZE;
             for (int x = 0; x < TEXTURE_SIZE; x++) {
                 for (int y = 0; y < TEXTURE_SIZE; y++) {
-                    int color = image.getRGB(xOffset + x, yOffset + y);
+                    int color;
+                    int realX = xOffset + x;
+                    int realY = yOffset + y;
+                    if (realX >= width || realY >= height) color = 0;
+                    else color = image.getRGB(realX, realY);
+
                     // The highest byte here represents the alpha
                     // value. We need to move it to the lowest byte
                     byte alpha = (byte) ((color >> 24) & 0xFF);
                     color <<= 8;
                     color += alpha;
-
                     pixmap.drawPixel(x, y, color);
                 }
             }
             textures[i] = new Texture(pixmap);
+
             pixmap.dispose();
         }
     }
