@@ -73,7 +73,7 @@ public class NetworkingThread extends Thread {
         if (reportedDisconnected) return;
 
         McLordClassic.game().networkingThread.interrupt();
-        EventManager.getInstance().fireEvent(new DisconnectEvent(reason));
+        EventManager.getInstance().fireEvent(DisconnectEvent.create(reason));
 
         reportedDisconnected = true;
     }
