@@ -1,5 +1,9 @@
 package ru.mclord.classic;
 
+import ru.mclord.classic.events.PluginInitializationFinishedEvent;
+import ru.mclord.classic.events.PluginPostInitializationFinishedEvent;
+import ru.mclord.classic.events.PluginPreInitializationFinishedEvent;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -212,7 +216,10 @@ public class PluginManager {
 
                 attempt++;
                 if (attempt >= MAX_ATTEMPTS) {
-                    throw new RuntimeException("");
+                    throw new RuntimeException("Too many plugin pre-initializing " +
+                            "attempts. Either MAX_ATTEMPTS=" + MAX_ATTEMPTS + " is " +
+                            "too low for current setup or plugin dependencies produce " +
+                            "a some kind of deadlock");
                 }
             }
         } catch (Exception e) {
@@ -222,6 +229,8 @@ public class PluginManager {
 
             System.exit(-1);
         }
+
+        EventManager.getInstance().fireEvent(PluginPreInitializationFinishedEvent.create());
     }
 
     @ShouldBeCalledBy(thread = "main")
@@ -259,6 +268,8 @@ public class PluginManager {
                 System.exit(-1);
             }
         }
+
+        EventManager.getInstance().fireEvent(PluginInitializationFinishedEvent.create());
     }
 
     /*
@@ -286,5 +297,7 @@ public class PluginManager {
                 System.exit(-1);
             }
         }
+
+        EventManager.getInstance().fireEvent(PluginPostInitializationFinishedEvent.create());
     }
 }

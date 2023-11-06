@@ -11,10 +11,14 @@ public class DisconnectEvent extends Event {
      */
     private final String reason;
 
-    public DisconnectEvent(String reason) {
+    private DisconnectEvent(String reason) {
         super(false);
 
         this.reason = reason;
+    }
+
+    public static DisconnectEvent create(String reason) {
+        return new DisconnectEvent(reason);
     }
 
     public String getReason() {
