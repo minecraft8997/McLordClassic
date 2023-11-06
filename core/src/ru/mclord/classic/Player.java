@@ -1,6 +1,6 @@
 package ru.mclord.classic;
 
-public class Player implements Renderable, Locatable {
+public class Player implements Locatable {
     /* package-private */ final String username;
     /* package-private */ final Location location;
     /* package-private */ final Rotation rotation;
@@ -12,7 +12,6 @@ public class Player implements Renderable, Locatable {
         this.rotation = new Rotation();
     }
 
-    @Override
     public void render() {
 
     }

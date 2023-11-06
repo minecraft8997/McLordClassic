@@ -1,6 +1,14 @@
 package ru.mclord.classic;
 
-public class Block {
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.utils.Disposable;
+
+public class Block implements Disposable {
     public interface PermissionChecker {
         boolean doIHaveThisPermission();
     }
@@ -34,6 +42,9 @@ public class Block {
     /* package-private */ final InteractPermission permissionBuild;
     /* package-private */ final InteractPermission permissionBreak;
 
+    protected Model model;
+    protected ModelInstance modelInstance;
+
     public Block(
             short id,
             String displayName,
@@ -48,6 +59,93 @@ public class Block {
         this.canWalkThrough = canWalkThrough;
         this.permissionBuild = permissionBuild;
         this.permissionBreak = permissionBreak;
+    }
+    
+    public void initGraphics() {
+        if (modelInstance != null) return;
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        modelBuilder.node();
+
+        modelBuilder.part(
+                Helper.FRONT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneFrontSideTexture))
+        ).rect(-1.0f, -1.0f, -1.0f,
+                -1.0f, 1.0f, -1.0f,
+                1.0f, 1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+                0f, 0f, -1f
+        );
+
+        modelBuilder.part(
+                Helper.BACK_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneBackSideTexture))
+        ).rect(-1.0f, 1.0f, 1.0f,
+                -1.0f, -1.0f, 1.0f,
+                1.0f, -1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,
+                0f, 0f, 1f
+        );
+
+        modelBuilder.part(
+                Helper.BOTTOM_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneBottomSideTexture))
+        ).rect(-1.0f, -1.0f, 1.0f,
+                -1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f, 1.0f,
+                0f, -1f, 0f
+        );
+
+        modelBuilder.part(
+                Helper.TOP_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneTopSideTexture))
+        ).rect(-1.0f, 1.0f, -1.0f,
+                -1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, -1.0f,
+                0f, 1f, 0f
+        );
+
+        modelBuilder.part(
+                Helper.LEFT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneLeftSideTexture))
+        ).rect(-1.0f, -1.0f, 1.0f,
+                -1.0f, 1.0f, 1.0f,
+                -1.0f, 1.0f, -1.0f,
+                -1.0f, -1.0f, -1.0f,
+                -1f, 0f, 0f
+        );
+
+        modelBuilder.part(
+                Helper.RIGHT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                Helper.ATTR,
+                new Material(TextureAttribute.createDiffuse(manager.doneRightSideTexture))
+        ).rect(1.0f, -1.0f, -1.0f,
+                1.0f, 1.0f, -1.0f,
+                1.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 1.0f,
+                1f, 0f, 0f
+        );
+
+        model = modelBuilder.end();
+        modelInstance = new ModelInstance(model);
+    }
+
+    public final ModelInstance getModelInstance() {
+        return modelInstance;
     }
 
     public final short getId() {
@@ -74,6 +172,16 @@ public class Block {
         return permissionBreak;
     }
 
+    public boolean shouldBeRenderedAt(int x, int y, int z) {
+        return true;
+    }
+
     public void onRightClick() {
+    }
+
+    @Override
+    public void dispose() {
+        Helper.dispose(model); model = null;
+        modelInstance = null;
     }
 }

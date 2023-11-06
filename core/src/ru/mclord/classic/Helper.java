@@ -1,5 +1,8 @@
 package ru.mclord.classic;
 
+import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.utils.Disposable;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -8,6 +11,15 @@ import java.io.IOException;
 public class Helper {
     public static final int PROTOCOL_STRING_LENGTH = 64;
     /* package-private */ static int PREFERRED_NETWORK_BUFFER_LENGTH = 8192;
+
+    public static final int ATTR = VertexAttributes.Usage.Position |
+            VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates;
+    public static final String RIGHT_SIDE_NAME = "right";
+    public static final String LEFT_SIDE_NAME = "left";
+    public static final String TOP_SIDE_NAME = "top";
+    public static final String BOTTOM_SIDE_NAME = "bottom";
+    public static final String FRONT_SIDE_NAME = "front";
+    public static final String BACK_SIDE_NAME = "back";
 
     private Helper() {
     }
@@ -52,6 +64,10 @@ public class Helper {
         stream.flush();
 
         return true;
+    }
+
+    public static void dispose(Disposable disposable) {
+        if (disposable != null) disposable.dispose();
     }
 
     public static byte[] toProtocolString(String str) {

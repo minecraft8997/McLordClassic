@@ -2,9 +2,11 @@ package ru.mclord.classic;
 
 import com.badlogic.gdx.Game;
 import ru.mclord.classic.events.DisconnectEvent;
-import ru.mclord.classic.events.PluginInitializationFinishedEvent;
+import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Properties;
+import java.util.Queue;
 
 public class McLordClassic extends Game {
 	public enum GameStage {
@@ -31,6 +33,7 @@ public class McLordClassic extends Game {
 	/* package-private */ NetworkingThread networkingThread;
 	/* package-private */ Player thePlayer;
 	/* package-private */ Level level;
+	private boolean levelDownloadFinishedForTheFirstTime = true;
 	/* package-private */ String disconnectReason;
 
 	private McLordClassic() {
@@ -39,7 +42,7 @@ public class McLordClassic extends Game {
 		EventManager.getInstance().registerEventHandler(
 				DisconnectEvent.class, this::handleDisconnect);
 		EventManager.getInstance().registerEventHandler(
-				PluginInitializationFinishedEvent.class, this::handleInitFinished);
+				LevelDownloadingFinishedEvent.class, this::handleLevelDownloadingFinished);
 	}
 
 	public static McLordClassic game() {
@@ -111,8 +114,14 @@ public class McLordClassic extends Game {
 		setScreen(DisconnectedScreen.getInstance());
 	}
 
-	private void handleInitFinished(PluginInitializationFinishedEvent event) {
-		PluginManager.getInstance().postInitPlugins();
+	private void handleLevelDownloadingFinished(LevelDownloadingFinishedEvent event) {
+		if (levelDownloadFinishedForTheFirstTime) {
+			PluginManager.getInstance().postInitPlugins();
+
+			levelDownloadFinishedForTheFirstTime = false;
+		}
+
+		setStage(GameStage.IN_GAME);
 	}
 	
 	@Override
