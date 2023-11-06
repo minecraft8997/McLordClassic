@@ -49,7 +49,7 @@ public class PluginManager {
         if (game.stage != McLordClassic.GameStage.INTERNAL_INITIALIZATION) {
             throw new IllegalStateException();
         }
-        game.stage = McLordClassic.GameStage.PRE_INITIALIZATION;
+        game.setStage(McLordClassic.GameStage.PRE_INITIALIZATION);
 
         System.out.println("Loading and calling preInit() on plugins");
 
@@ -252,7 +252,7 @@ public class PluginManager {
                 game.stage != McLordClassic.GameStage.CONNECTING_TO_THE_SERVER) {
             throw new IllegalStateException();
         }
-        game.stage = McLordClassic.GameStage.INITIALIZATION;
+        game.setStage(McLordClassic.GameStage.INITIALIZATION);
 
         System.out.println();
         System.out.println("Calling init() on plugins");
@@ -281,7 +281,7 @@ public class PluginManager {
         if (game.stage != McLordClassic.GameStage.INITIALIZATION) {
             throw new IllegalStateException();
         }
-        game.stage = McLordClassic.GameStage.POST_INITIALIZATION;
+        game.setStage(McLordClassic.GameStage.POST_INITIALIZATION);
 
         System.out.println();
         System.out.println("Calling postInit() on plugins");

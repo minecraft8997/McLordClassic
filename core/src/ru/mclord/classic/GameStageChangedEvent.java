@@ -1,7 +1,4 @@
-package ru.mclord.classic.events;
-
-import ru.mclord.classic.Event;
-import ru.mclord.classic.McLordClassic;
+package ru.mclord.classic;
 
 public class GameStageChangedEvent extends Event {
     private final McLordClassic.GameStage previous;

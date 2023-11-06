@@ -22,7 +22,6 @@ public class McLordClassic extends Game {
 	public static final boolean DEBUG = true;
 	public static final String APP_NAME = "McLordClassic";
 	public static final String VERSION = "0.1";
-	public static final byte PROTOCOL_VERSION = 7;
 
 	private static final McLordClassic INSTANCE = new McLordClassic();
 
@@ -66,7 +65,7 @@ public class McLordClassic extends Game {
 	public void create() {
 		PluginManager.getInstance().loadPlugins();
 
-		stage = GameStage.CONNECTING_TO_THE_SERVER;
+		setStage(GameStage.CONNECTING_TO_THE_SERVER);
 		networkingThread = new NetworkingThread();
 		networkingThread.start();
 
@@ -99,12 +98,15 @@ public class McLordClassic extends Game {
 
 	@ShouldBeCalledBy(thread = "main")
 	public void setStage(GameStage stage) {
+		GameStage old = this.stage;
 		this.stage = stage;
+
+		EventManager.getInstance().fireEvent(GameStageChangedEvent.create(old, stage));
 	}
 
 	private void handleDisconnect(DisconnectEvent event) {
 		disconnectReason = event.getReason();
-		stage = GameStage.DISCONNECTED;
+		setStage(GameStage.DISCONNECTED);
 
 		setScreen(DisconnectedScreen.getInstance());
 	}
