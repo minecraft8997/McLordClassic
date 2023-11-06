@@ -42,9 +42,9 @@ public class TextureManager implements Disposable {
     }
 
     @ShouldBeCalledBy(thread = "main")
-    public void load(String path) {
+    public void load(String path, boolean allowNet, boolean allowFileSystem) {
         BufferedImage image;
-        try (InputStream inputStream = createInputStream(path)) {
+        try (InputStream inputStream = createInputStream(path, allowNet, allowFileSystem)) {
             image = ImageIO.read(inputStream);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -85,11 +85,17 @@ public class TextureManager implements Disposable {
         }
     }
 
-    private static InputStream createInputStream(String path) throws IOException {
+    private static InputStream createInputStream(
+            String path, boolean allowNet, boolean allowFileSystem
+    ) throws IOException {
         String lowercasePath = path.toLowerCase();
         boolean isZIP = lowercasePath.endsWith(".zip");
         InputStream inputStream;
         if (lowercasePath.startsWith("http://") || lowercasePath.startsWith("https://")) {
+            if (!allowNet) {
+                throw new SecurityException("Using networking is not allowed");
+            }
+
             URL url = new URL(path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent",
@@ -97,6 +103,10 @@ public class TextureManager implements Disposable {
 
             inputStream = connection.getInputStream();
         } else {
+            if (!allowFileSystem) {
+                throw new SecurityException("Using file system is not allowed");
+            }
+
             inputStream = new FileInputStream(path);
         }
         if (isZIP) {

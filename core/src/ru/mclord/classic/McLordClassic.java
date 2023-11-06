@@ -92,6 +92,16 @@ public class McLordClassic extends Game {
 		super.render();
 	}
 
+	@ShouldBeCalledBy(thread = "main")
+	public GameStage getStage() {
+		return stage;
+	}
+
+	@ShouldBeCalledBy(thread = "main")
+	public void setStage(GameStage stage) {
+		this.stage = stage;
+	}
+
 	private void handleDisconnect(DisconnectEvent event) {
 		disconnectReason = event.getReason();
 		stage = GameStage.DISCONNECTED;

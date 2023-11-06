@@ -4,9 +4,13 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 public abstract class LevelDownloadDriver {
-    /* package-private */ static volatile LevelDownloadDriver driver;
+    /* package-private */ static LevelDownloadDriver driver;
 
     public abstract Level downloadLevel(DataInputStream stream) throws IOException;
+
+    public synchronized static LevelDownloadDriver getDriver() {
+        return driver;
+    }
 
     public static synchronized void setDriver(LevelDownloadDriver driver) {
         if (LevelDownloadDriver.driver != null) {
