@@ -9,6 +9,7 @@ import ru.mclord.classic.events.DisconnectEvent;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class NetworkingThread extends Thread {
     public static final byte PLAYER_IDENTIFICATION = 0x00;
@@ -26,8 +27,6 @@ public class NetworkingThread extends Thread {
 
     @Override
     public void run() {
-        PacketManager packets = PacketManager.getInstance();
-
         Socket socket = null;
         try {
             socket = Gdx.net.newClientSocket(
@@ -40,7 +39,9 @@ public class NetworkingThread extends Thread {
             output = new DataOutputStream(new BufferedOutputStream(socket
                     .getOutputStream(), Helper.PREFERRED_NETWORK_BUFFER_LENGTH));
 
-            packets.writeAndFlush(true, output, PLAYER_IDENTIFICATION,
+            PacketManager.getInstance().writeAndFlush(true, output,
+                    PLAYER_IDENTIFICATION,
+
                     (byte) 0x07,
                     GameParameters.getUsername(),
                     GameParameters.getMppass(),
@@ -49,12 +50,7 @@ public class NetworkingThread extends Thread {
 
             while (!Thread.currentThread().isInterrupted()) {
                 byte packetId = input.readByte();
-                PacketHandler handler = packets.attemptHandleFastly(packetId, input);
-                if (handler != null) { // means fastHandler == false
-                    byte[] payload = new byte[handler.packetLength];
-                    input.readFully(payload);
-                    packets.handle(this, packetId, handler, payload);
-                }
+                handlePacket(packetId);
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -66,6 +62,18 @@ public class NetworkingThread extends Thread {
             }
 
             reportDisconnected("Disconnected");
+        }
+    }
+
+    /* package-private */ void handlePacket(
+            byte packetId
+    ) throws IOException, InterruptedException {
+        PacketHandler handler =
+                PacketManager.getInstance().attemptHandleFastly(packetId, input);
+        if (handler != null) { // means fastHandler == false
+            byte[] payload = new byte[handler.packetLength];
+            input.readFully(payload);
+            PacketManager.getInstance().handle(this, packetId, handler, payload);
         }
     }
 

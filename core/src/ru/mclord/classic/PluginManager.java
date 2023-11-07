@@ -40,6 +40,16 @@ public class PluginManager {
         return INSTANCE;
     }
 
+    /* package-private */ void checkKey(Key key) {
+        if (keyHashCode == null) {
+            throw new IllegalStateException(
+                    "There are no core plugins that are currently loaded");
+        }
+        if (key != null && key.hashCode() != keyHashCode) {
+            throw new SecurityException("Wrong key");
+        }
+    }
+
     /**
      * Loads plugins and calls the preInit() method.
      */
@@ -275,13 +285,7 @@ public class PluginManager {
 
     // is called by a plugin
     public void initPlugins(Key key) {
-        if (keyHashCode == null) {
-            throw new IllegalStateException(
-                    "There are no core plugins that are currently loaded");
-        }
-        if (key != null && key.hashCode() != keyHashCode) {
-            throw new SecurityException("Wrong key");
-        }
+        checkKey(key);
         McLordClassic game = McLordClassic.game();
         if (game.stage != McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS &&
                 game.stage != McLordClassic.GameStage.CONNECTING_TO_THE_SERVER) {

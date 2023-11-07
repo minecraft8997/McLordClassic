@@ -66,6 +66,15 @@ public class Helper {
         return true;
     }
 
+    @ShouldBeCalledBy(thread = "networking")
+    public static void handlePacket(
+            byte packetId, PluginManager.Key key
+    ) throws IOException, InterruptedException {
+        PluginManager.getInstance().checkKey(key);
+
+        McLordClassic.game().networkingThread.handlePacket(packetId);
+    }
+
     public static void dispose(Disposable disposable) {
         if (disposable != null) disposable.dispose();
     }

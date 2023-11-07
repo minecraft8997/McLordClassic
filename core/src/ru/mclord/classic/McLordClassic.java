@@ -31,7 +31,7 @@ public class McLordClassic extends Game {
 	private Properties gameProperties;
 	private final Queue<Runnable> taskList = new ArrayDeque<>();
 	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
-	/* package-private */ NetworkingThread networkingThread;
+	/* package-private */ volatile NetworkingThread networkingThread;
 	/* package-private */ Player thePlayer;
 	/* package-private */ Level level;
 	private boolean levelDownloadFinishedForTheFirstTime = true;
