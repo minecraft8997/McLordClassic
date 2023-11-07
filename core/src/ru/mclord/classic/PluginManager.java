@@ -113,6 +113,8 @@ public class PluginManager {
 
                         String name = properties.getProperty("name");
                         String version = properties.getProperty("version");
+                        String compatibleWithUnparsed =
+                                properties.getProperty("compatibleWith");
                         String author = properties.getProperty("author");
                         String mainClass = properties.getProperty("mainClass");
                         boolean corePlugin = Boolean
@@ -120,13 +122,46 @@ public class PluginManager {
                         String dependsOnUnparsed = properties.getProperty("dependsOn");
 
                         if (name == null || version == null ||
-                                author == null || mainClass == null) {
+                                compatibleWithUnparsed == null ||
+                                author == null || mainClass == null
+                        ) {
                             System.err.println("\"/plugin.properties\" file in " + file
                                     .getName() + " is missing one or multiple required " +
                                     "fields. The jarfile will just be stored in classpath");
 
                             continue;
                         }
+                        String[] compatibleWith = compatibleWithUnparsed.split(", ");
+                        boolean foundCurrentVersion = false;
+                        boolean allSupportedVersionsAreHigher = true;
+                        for (String versionUnparsed : compatibleWith) {
+                            int supportedVersion = Integer.parseInt(versionUnparsed);
+                            if (supportedVersion <= McLordClassic.VERSION_CODE) {
+                                allSupportedVersionsAreHigher = false;
+                            }
+                            if (supportedVersion == McLordClassic.VERSION_CODE) {
+                                foundCurrentVersion = true;
+
+                                break;
+                            }
+                        }
+                        if (!foundCurrentVersion) {
+                            System.err.println("Could not find current version code " +
+                                    "(" + McLordClassic.VERSION_CODE + ") in the " +
+                                    "compatible version list of the plugin located " +
+                                    "at \"" + file.getName() + "\". The plugin might " +
+                                    "not run well on this game version");
+                        }
+                        if (allSupportedVersionsAreHigher) {
+                            System.err.println("Could not find any version code in " +
+                                    "the compatible version list of the plugin " +
+                                    "located at \"" + file.getName() + "\" that is " +
+                                    "lower than the current one (" +
+                                    McLordClassic.VERSION_CODE + "). It is very " +
+                                    "unlikely that the plugin will perform well " +
+                                    "on the current game setup");
+                        }
+
                         if (attempt == 0) {
                             knownIdentifiers.add(name);
                         }

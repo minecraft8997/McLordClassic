@@ -41,9 +41,14 @@ public class Block implements Disposable {
     /* package-private */ final boolean canWalkThrough;
     /* package-private */ final InteractPermission permissionBuild;
     /* package-private */ final InteractPermission permissionBreak;
+    /* package-private */ final int topTextureId;
+    /* package-private */ final int leftTextureId;
+    /* package-private */ final int rightTextureId;
+    /* package-private */ final int frontTextureId;
+    /* package-private */ final int backTextureId;
+    /* package-private */ final int bottomTextureId;
 
     protected Model model;
-    protected ModelInstance modelInstance;
 
     public Block(
             short id,
@@ -51,7 +56,40 @@ public class Block implements Disposable {
             boolean liquid,
             boolean canWalkThrough,
             InteractPermission permissionBuild,
-            InteractPermission permissionBreak
+            InteractPermission permissionBreak,
+            int topTextureId,
+            int sideTextureId,
+            int bottomTextureId
+    ) {
+        this(
+                id,
+                displayName,
+                liquid,
+                canWalkThrough,
+                permissionBuild,
+                permissionBreak,
+                topTextureId,
+                sideTextureId,
+                sideTextureId,
+                sideTextureId,
+                sideTextureId,
+                bottomTextureId
+        );
+    }
+
+    public Block(
+            short id,
+            String displayName,
+            boolean liquid,
+            boolean canWalkThrough,
+            InteractPermission permissionBuild,
+            InteractPermission permissionBreak,
+            int topTextureId,
+            int leftTextureId,
+            int rightTextureId,
+            int frontTextureId,
+            int backTextureId,
+            int bottomTextureId
     ) {
         this.id = id;
         this.displayName = displayName;
@@ -59,11 +97,18 @@ public class Block implements Disposable {
         this.canWalkThrough = canWalkThrough;
         this.permissionBuild = permissionBuild;
         this.permissionBreak = permissionBreak;
+        this.topTextureId = topTextureId;
+        this.leftTextureId = leftTextureId;
+        this.rightTextureId = rightTextureId;
+        this.frontTextureId = frontTextureId;
+        this.backTextureId = backTextureId;
+        this.bottomTextureId = bottomTextureId;
     }
     
     public void initGraphics() {
-        if (modelInstance != null) return;
+        if (model != null) return;
 
+        TextureManager manager = TextureManager.getInstance();
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
         modelBuilder.node();
@@ -72,7 +117,8 @@ public class Block implements Disposable {
                 Helper.FRONT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneFrontSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(frontTextureId)))
         ).rect(-1.0f, -1.0f, -1.0f,
                 -1.0f, 1.0f, -1.0f,
                 1.0f, 1.0f, -1.0f,
@@ -84,7 +130,8 @@ public class Block implements Disposable {
                 Helper.BACK_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneBackSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(backTextureId)))
         ).rect(-1.0f, 1.0f, 1.0f,
                 -1.0f, -1.0f, 1.0f,
                 1.0f, -1.0f, 1.0f,
@@ -96,7 +143,8 @@ public class Block implements Disposable {
                 Helper.BOTTOM_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneBottomSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(bottomTextureId)))
         ).rect(-1.0f, -1.0f, 1.0f,
                 -1.0f, -1.0f, -1.0f,
                 1.0f, -1.0f, -1.0f,
@@ -108,7 +156,8 @@ public class Block implements Disposable {
                 Helper.TOP_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneTopSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(topTextureId)))
         ).rect(-1.0f, 1.0f, -1.0f,
                 -1.0f, 1.0f, 1.0f,
                 1.0f, 1.0f, 1.0f,
@@ -120,7 +169,8 @@ public class Block implements Disposable {
                 Helper.LEFT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneLeftSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(leftTextureId)))
         ).rect(-1.0f, -1.0f, 1.0f,
                 -1.0f, 1.0f, 1.0f,
                 -1.0f, 1.0f, -1.0f,
@@ -132,7 +182,8 @@ public class Block implements Disposable {
                 Helper.RIGHT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager.doneRightSideTexture))
+                new Material(TextureAttribute
+                        .createDiffuse(manager.getTexture(rightTextureId)))
         ).rect(1.0f, -1.0f, -1.0f,
                 1.0f, 1.0f, -1.0f,
                 1.0f, 1.0f, 1.0f,
@@ -141,11 +192,10 @@ public class Block implements Disposable {
         );
 
         model = modelBuilder.end();
-        modelInstance = new ModelInstance(model);
     }
 
-    public final ModelInstance getModelInstance() {
-        return modelInstance;
+    public final Model getModel() {
+        return model;
     }
 
     public final short getId() {
@@ -182,6 +232,5 @@ public class Block implements Disposable {
     @Override
     public void dispose() {
         Helper.dispose(model); model = null;
-        modelInstance = null;
     }
 }

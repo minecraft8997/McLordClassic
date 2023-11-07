@@ -1,7 +1,6 @@
 package ru.mclord.classic;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BlockManager implements Manager {
     private static final BlockManager INSTANCE = new BlockManager();
@@ -15,10 +14,22 @@ public class BlockManager implements Manager {
         return INSTANCE;
     }
 
+    @ShouldBeCalledBy(thread = "main")
     public Block getBlock(short id) {
         return REGISTERED_BLOCKS.get(id);
     }
 
+    @ShouldBeCalledBy(thread = "main")
+    public Set<Block> enumerateBlocks() {
+        return new HashSet<>(enumerateBlocksFast());
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    /* package-private */ Collection<Block> enumerateBlocksFast() {
+        return REGISTERED_BLOCKS.values();
+    }
+
+    @ShouldBeCalledBy(thread = "main")
     public void registerBlock(Block block) {
         if (!checkStage()) {
             throw new IllegalStateException(
@@ -32,12 +43,24 @@ public class BlockManager implements Manager {
         REGISTERED_BLOCKS.put(block.id, block);
     }
 
+    @ShouldBeCalledBy(thread = "main")
+    public void unregisterBlock(Block block) {
+        unregisterBlock(block.id);
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public void unregisterBlock(short id) {
+        if (!checkStage()) {
+            throw new IllegalStateException(
+                    "Cannot unregister blocks during current game stage");
+        }
+        Block removed = REGISTERED_BLOCKS.remove(id);
+
+        if (removed != null) removed.dispose();
+    }
+
     @Override
     public boolean checkStage() {
-        McLordClassic.GameStage stage = McLordClassic.game().stage;
-
-        return stage == McLordClassic.GameStage.PRE_INITIALIZATION ||
-                stage == McLordClassic.GameStage.ENABLING_PROTOCOL_EXTENSIONS ||
-                stage == McLordClassic.GameStage.INITIALIZATION;
+        return true;
     }
 }

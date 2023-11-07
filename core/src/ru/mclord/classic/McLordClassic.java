@@ -24,6 +24,7 @@ public class McLordClassic extends Game {
 	public static final boolean DEBUG = true;
 	public static final String APP_NAME = "McLordClassic";
 	public static final String VERSION = "0.1";
+	public static final int VERSION_CODE = 1;
 
 	private static final McLordClassic INSTANCE = new McLordClassic();
 
