@@ -19,6 +19,7 @@ public class DesktopLauncher {
 		props.setProperty("vsync", "true");
 		props.setProperty("audio", "true");
 		props.setProperty("hdpiMode", "Logical");
+		props.setProperty("texturePack", TextureManager.DEFAULT_TEXTURE_PACK);
 
 		File propertiesFile = new File("game.properties");
 		if (propertiesFile.createNewFile()) {

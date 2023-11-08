@@ -67,6 +67,14 @@ public class McLordClassic extends Game {
 
 	@Override
 	public void create() {
+		System.out.println("Loading texture pack");
+		String configTexturePack = gameProperties.getProperty("texturePack");
+		if (configTexturePack == null || configTexturePack.isEmpty()) {
+			configTexturePack = TextureManager.DEFAULT_TEXTURE_PACK;
+		}
+		TextureManager.getInstance()
+				.load(configTexturePack, true, true);
+
 		PluginManager.getInstance().loadPlugins();
 
 		setStage(GameStage.CONNECTING_TO_THE_SERVER);

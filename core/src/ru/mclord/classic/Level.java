@@ -80,6 +80,8 @@ public class Level implements Disposable {
 
     @ShouldBeCalledBy(thread = "main")
     public void updateGraphics() {
+        if (modelCache == null) return;
+
         dispose();
         initGraphics();
     }

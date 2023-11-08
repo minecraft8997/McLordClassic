@@ -31,6 +31,9 @@ public class TextureManager implements Disposable {
         TEXTURE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT / (TEXTURE_SIZE * TEXTURE_SIZE);
     }
 
+    public static final String DEFAULT_TEXTURE_PACK =
+            "https://static.classicube.net/default.zip";
+
     private static final TextureManager INSTANCE = new TextureManager();
     private final Texture[] textures = new Texture[TEXTURE_COUNT];
 

@@ -88,7 +88,9 @@ public class PluginManager {
         }
         System.out.println("Located plugins: " + urls.length);
 
-        try (URLClassLoader child = new URLClassLoader(urls, getClass().getClassLoader())) {
+        try {
+            URLClassLoader child = new URLClassLoader(urls, getClass().getClassLoader());
+
             int attempt = 0;
             Set<File> loadedFiles = new HashSet<>();
             Set<String> knownIdentifiers = new HashSet<>();
@@ -317,7 +319,7 @@ public class PluginManager {
      */
     /* package-private */ void postInitPlugins() {
         McLordClassic game = McLordClassic.game();
-        if (game.stage != McLordClassic.GameStage.INITIALIZATION) {
+        if (game.stage != McLordClassic.GameStage.DOWNLOADING_THE_LEVEL) {
             throw new IllegalStateException();
         }
         game.setStage(McLordClassic.GameStage.POST_INITIALIZATION);
