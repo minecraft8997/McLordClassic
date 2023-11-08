@@ -1,19 +1,35 @@
 package ru.mclord.classic;
 
-public class Player implements Locatable {
+import com.badlogic.gdx.utils.Disposable;
+
+public class Player implements Locatable, Disposable {
+    /* package-private */ final byte id;
     /* package-private */ final String username;
     /* package-private */ final Location location;
     /* package-private */ final Rotation rotation;
     /* package-private */ boolean op;
 
-    public Player(String username) {
+    /* package-private */ Player(byte id, String username) {
+        this.id = id;
         this.username = username;
         this.location = new Location();
         this.rotation = new Rotation();
     }
 
+    public static Player create(byte id, String username) {
+        return new Player(id, username);
+    }
+
+    public boolean isMe() {
+        return (id == -1);
+    }
+
     public void render() {
 
+    }
+
+    public byte getId() {
+        return id;
     }
 
     public String getUsername() {
@@ -37,7 +53,7 @@ public class Player implements Locatable {
         this.op = op;
     }
 
-    // @Override
+    @Override
     public void dispose() {
 
     }

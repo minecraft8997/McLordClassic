@@ -3,6 +3,8 @@ package ru.mclord.classic;
 import com.badlogic.gdx.Game;
 import ru.mclord.classic.events.DisconnectEvent;
 import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
+import ru.mclord.classic.events.LevelDownloadingStartedEvent;
+import ru.mclord.classic.events.PlayerSpawnEvent;
 
 import java.util.ArrayDeque;
 import java.util.Properties;
@@ -40,10 +42,15 @@ public class McLordClassic extends Game {
 	private McLordClassic() {
 		if (DEBUG) GameParameters.setupDebugProperties();
 		GameParameters.collectAndVerify();
+
 		EventManager.getInstance().registerEventHandler(
 				DisconnectEvent.class, this::handleDisconnect);
 		EventManager.getInstance().registerEventHandler(
+				LevelDownloadingStartedEvent.class, this::handleLevelDownloadingStarted);
+		EventManager.getInstance().registerEventHandler(
 				LevelDownloadingFinishedEvent.class, this::handleLevelDownloadingFinished);
+		EventManager.getInstance().registerEventHandler(
+				PlayerSpawnEvent.class, this::handlePlayerSpawn);
 	}
 
 	public static McLordClassic game() {
@@ -81,7 +88,7 @@ public class McLordClassic extends Game {
 		networkingThread = new NetworkingThread();
 		networkingThread.start();
 
-		setScreen(new LoadingScreen());
+		setScreen(LoadingScreen.getInstance());
 	}
 
 	@Override
@@ -111,29 +118,106 @@ public class McLordClassic extends Game {
 	@ShouldBeCalledBy(thread = "main")
 	public void setStage(GameStage stage) {
 		GameStage old = this.stage;
+		if (old == stage) return;
 		this.stage = stage;
+
+		switch (stage) {
+			case PRE_INITIALIZATION: {
+				LoadingScreen.getInstance().setStatus("Completing Pre-Initialization");
+
+				break;
+			}
+			case CONNECTING_TO_THE_SERVER: {
+				LoadingScreen.getInstance().setStatus("Connecting to " +
+						GameParameters.getAddress() + ":" + GameParameters.getPort());
+
+				break;
+			}
+			case ENABLING_PROTOCOL_EXTENSIONS: {
+				LoadingScreen.getInstance().setStatus("Enabling protocol extensions");
+
+				break;
+			}
+			case INITIALIZATION: {
+				LoadingScreen.getInstance().setStatus("Initializing");
+
+				break;
+			}
+			case DOWNLOADING_THE_LEVEL: {
+				LoadingScreen.getInstance().setStatus("Downloading the level");
+
+				break;
+			}
+			case POST_INITIALIZATION: {
+				LoadingScreen.getInstance().setStatus("Completing Post-Initialization");
+
+				break;
+			}
+			case IN_GAME: {
+				setScreen(InGameScreen.getInstance());
+
+				break;
+			}
+			case DISCONNECTED: {
+				setScreen(DisconnectedScreen.getInstance());
+
+				break;
+			}
+		}
 
 		EventManager.getInstance().fireEvent(GameStageChangedEvent.create(old, stage));
 	}
 
 	private void handleDisconnect(DisconnectEvent event) {
 		disconnectReason = event.getReason();
-		setStage(GameStage.DISCONNECTED);
 
-		setScreen(DisconnectedScreen.getInstance());
+		setStage(GameStage.DISCONNECTED);
+	}
+
+	private void handleLevelDownloadingStarted(LevelDownloadingStartedEvent event) {
+		Helper.dispose(level); level = null;
+
+		if (!(getScreen() instanceof LoadingScreen)) {
+			setScreen(LoadingScreen.getInstance());
+		}
 	}
 
 	private void handleLevelDownloadingFinished(LevelDownloadingFinishedEvent event) {
+		level = event.getLevel();
+
+		InGameScreen gameScreen = InGameScreen.getInstance();
+		gameScreen.dispose();
+		gameScreen.setLevel(level);
+
 		if (levelDownloadFinishedForTheFirstTime) {
 			PluginManager.getInstance().postInitPlugins();
 
 			levelDownloadFinishedForTheFirstTime = false;
 		}
+	}
 
-		setStage(GameStage.IN_GAME);
+	private void handlePlayerSpawn(PlayerSpawnEvent event) {
+		Player player = event.getPlayer();
+		if (player.isMe()) {
+			thePlayer = player;
+
+			if (event.isFirstSpawnOnCurrentLevel()) {
+				setStage(GameStage.IN_GAME);
+			}
+		}
 	}
 	
 	@Override
 	public void dispose() {
+		PluginManager.getInstance().disablePlugins();
+
+		Helper.dispose(level); level = null;
+		Helper.dispose(thePlayer); thePlayer = null; // but likely that's not required
+		for (Block block : BlockManager.getInstance().enumerateBlocksFast()) {
+			block.dispose();
+		}
+		TextureManager.getInstance().dispose();
+
+		System.out.println("Goodbye!");
 	}
 }

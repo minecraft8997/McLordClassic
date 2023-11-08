@@ -2,6 +2,7 @@ package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -22,6 +23,10 @@ public class Helper {
     public static final String BACK_SIDE_NAME = "back";
 
     private Helper() {
+    }
+
+    public static void clearScreen() {
+        ScreenUtils.clear(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     public static File[] listPlugins() {

@@ -88,6 +88,8 @@ public class Level implements Disposable {
 
     @ShouldBeCalledBy(thread = "main")
     public void render(ModelBatch modelBatch, Environment environment) {
+        if (modelCache == null) return;
+
         modelBatch.render(modelCache, environment);
     }
 

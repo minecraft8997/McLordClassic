@@ -38,7 +38,5 @@ public abstract class LevelDownloadDriver {
 
         System.out.printf("Successfully downloaded a %dx%dx%d level%s",
                 level.getSizeX(), level.getSizeY(), level.getSizeZ(), System.lineSeparator());
-
-        game.addTask(() -> game.level = level);
     }
 }

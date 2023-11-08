@@ -6,6 +6,7 @@ import ru.mclord.classic.events.PluginPreInitializationFinishedEvent;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -295,20 +296,7 @@ public class PluginManager {
         }
         game.setStage(McLordClassic.GameStage.INITIALIZATION);
 
-        System.out.println();
-        System.out.println("Calling init() on plugins");
-        for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
-            try {
-                entry.getValue().init();
-            } catch (Throwable t) {
-                System.err.println("An issue occurred while calling " +
-                        "the init() method on plugin \"" + entry.getKey() + "\":");
-                t.printStackTrace();
-                System.err.println("The game will be terminated");
-
-                System.exit(-1);
-            }
-        }
+        call("init");
 
         EventManager.getInstance().fireEvent(PluginInitializationFinishedEvent.create());
     }
@@ -324,21 +312,37 @@ public class PluginManager {
         }
         game.setStage(McLordClassic.GameStage.POST_INITIALIZATION);
 
+        call("postInit");
+
+        EventManager.getInstance().fireEvent(PluginPostInitializationFinishedEvent.create());
+    }
+
+    /*
+     * Unfortunately this method is almost a copy-paste from initPlugin().
+     * Might be it is worth to rewrite these 2 methods into a single one in the future.
+     */
+    /* package-private */ void disablePlugins() {
+        call("disable");
+    }
+
+    private void call(String methodStr) {
         System.out.println();
-        System.out.println("Calling postInit() on plugins");
+        System.out.println("Calling " + methodStr + "() on plugins");
         for (Map.Entry<String, Plugin> entry : pluginMap.entrySet()) {
             try {
-                entry.getValue().postInit();
+                Plugin plugin = entry.getValue();
+                Method method = Plugin.class.getDeclaredMethod(methodStr);
+                method.setAccessible(true);
+                method.invoke(plugin);
             } catch (Throwable t) {
                 System.err.println("An issue occurred while calling " +
-                        "the postInit() method on plugin \"" + entry.getKey() + "\":");
+                        "the " + methodStr + "() method on plugin \"" +
+                        entry.getKey() + "\":");
                 t.printStackTrace();
                 System.err.println("The game will be terminated");
 
                 System.exit(-1);
             }
         }
-
-        EventManager.getInstance().fireEvent(PluginPostInitializationFinishedEvent.create());
     }
 }
