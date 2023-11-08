@@ -3,7 +3,6 @@ package ru.mclord.classic;
 import com.badlogic.gdx.Game;
 import ru.mclord.classic.events.DisconnectEvent;
 import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
-import ru.mclord.classic.events.LevelDownloadingStartedEvent;
 import ru.mclord.classic.events.PlayerSpawnEvent;
 
 import java.util.ArrayDeque;
@@ -34,7 +33,6 @@ public class McLordClassic extends Game {
 	private final Queue<Runnable> taskList = new ArrayDeque<>();
 	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
 	/* package-private */ volatile NetworkingThread networkingThread;
-	/* package-private */ Player thePlayer;
 	/* package-private */ Level level;
 	private boolean levelDownloadFinishedForTheFirstTime = true;
 	/* package-private */ String disconnectReason;
@@ -45,8 +43,6 @@ public class McLordClassic extends Game {
 
 		EventManager.getInstance().registerEventHandler(
 				DisconnectEvent.class, this::handleDisconnect);
-		EventManager.getInstance().registerEventHandler(
-				LevelDownloadingStartedEvent.class, this::handleLevelDownloadingStarted);
 		EventManager.getInstance().registerEventHandler(
 				LevelDownloadingFinishedEvent.class, this::handleLevelDownloadingFinished);
 		EventManager.getInstance().registerEventHandler(
@@ -64,6 +60,14 @@ public class McLordClassic extends Game {
 		this.gameProperties = gameProperties;
 
 		return this;
+	}
+
+	@ShouldBeCalledBy(thread = "main")
+	public static Player getPlayer() {
+		Level level = McLordClassic.game().level;
+		if (level == null) return null;
+
+		return level.getPlayer((byte) -1);
 	}
 
 	public void addTask(Runnable task) {
@@ -116,6 +120,16 @@ public class McLordClassic extends Game {
 	}
 
 	@ShouldBeCalledBy(thread = "main")
+	public Level getLevel() {
+		return level;
+	}
+
+	@ShouldBeCalledBy(thread = "main")
+	public String getDisconnectReason() {
+		return disconnectReason;
+	}
+
+	@ShouldBeCalledBy(thread = "main")
 	public void setStage(GameStage stage) {
 		GameStage old = this.stage;
 		if (old == stage) return;
@@ -146,6 +160,11 @@ public class McLordClassic extends Game {
 			case DOWNLOADING_THE_LEVEL: {
 				LoadingScreen.getInstance().setStatus("Downloading the level");
 
+				Helper.dispose(level); level = null;
+				if (!(getScreen() instanceof LoadingScreen)) {
+					setScreen(LoadingScreen.getInstance());
+				}
+
 				break;
 			}
 			case POST_INITIALIZATION: {
@@ -174,14 +193,6 @@ public class McLordClassic extends Game {
 		setStage(GameStage.DISCONNECTED);
 	}
 
-	private void handleLevelDownloadingStarted(LevelDownloadingStartedEvent event) {
-		Helper.dispose(level); level = null;
-
-		if (!(getScreen() instanceof LoadingScreen)) {
-			setScreen(LoadingScreen.getInstance());
-		}
-	}
-
 	private void handleLevelDownloadingFinished(LevelDownloadingFinishedEvent event) {
 		level = event.getLevel();
 
@@ -198,12 +209,8 @@ public class McLordClassic extends Game {
 
 	private void handlePlayerSpawn(PlayerSpawnEvent event) {
 		Player player = event.getPlayer();
-		if (player.isMe()) {
-			thePlayer = player;
-
-			if (event.isFirstSpawnOnCurrentLevel()) {
-				setStage(GameStage.IN_GAME);
-			}
+		if (player.isMe() && event.isFirstSpawnOnCurrentLevel()) {
+			setStage(GameStage.IN_GAME);
 		}
 	}
 	
@@ -212,7 +219,6 @@ public class McLordClassic extends Game {
 		PluginManager.getInstance().disablePlugins();
 
 		Helper.dispose(level); level = null;
-		Helper.dispose(thePlayer); thePlayer = null; // but likely that's not required
 		for (Block block : BlockManager.getInstance().enumerateBlocksFast()) {
 			block.dispose();
 		}

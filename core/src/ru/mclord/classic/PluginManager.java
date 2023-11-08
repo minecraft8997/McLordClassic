@@ -301,10 +301,6 @@ public class PluginManager {
         EventManager.getInstance().fireEvent(PluginInitializationFinishedEvent.create());
     }
 
-    /*
-     * Unfortunately this method is almost a copy-paste from initPlugin().
-     * Might be it is worth to rewrite these 2 methods into a single one in the future.
-     */
     /* package-private */ void postInitPlugins() {
         McLordClassic game = McLordClassic.game();
         if (game.stage != McLordClassic.GameStage.DOWNLOADING_THE_LEVEL) {

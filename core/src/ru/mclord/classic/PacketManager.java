@@ -157,8 +157,15 @@ public class PacketManager implements Manager {
 
             thread.finishedExecuting = false;
             handler.handle0(stream);
-            while (!thread.finishedExecuting) {
-                thread.wait();
+            try {
+                while (!thread.finishedExecuting) {
+                    thread.wait();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+
+                System.err.println("NetworkingThread received a request to interrupt " +
+                        "while waiting for the main thread to handle a packet");
             }
         }
 

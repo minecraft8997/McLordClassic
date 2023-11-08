@@ -60,7 +60,7 @@ public class InGameScreen implements Screen {
         camera = new PerspectiveCamera(
                 90.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.position
-                .set(level.sizeX / 2.0f, level.sizeY / 2.0f, level.sizeZ / 2.0f);
+                .set(level.sizeX / 2.0f, 1, level.sizeZ / 2.0f);
         camera.near = 1f;
         camera.far = 300f;
         camera.update();
@@ -77,7 +77,7 @@ public class InGameScreen implements Screen {
     public void render(float delta) {
         cameraController.update();
 
-        ScreenUtils.clear(0.0f, 0.0f, 0.0f, 1.0f);
+        ScreenUtils.clear(1.0f, 1.0f, 1.0f, 1.0f);
 
         modelBatch.begin(camera);
         level.render(modelBatch, environment);

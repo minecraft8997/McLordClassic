@@ -16,9 +16,9 @@ public class Block implements Disposable {
     public enum InteractPermission {
         EVERYONE(() -> true),
         OP_ONLY(() -> {
-            McLordClassic game = McLordClassic.game();
+            Player me = McLordClassic.getPlayer();
 
-            return (game.thePlayer != null && game.thePlayer.isOp());
+            return (me != null && me.isOp());
         }),
         NO_ONE(() -> false);
 

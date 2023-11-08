@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Disposable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Level implements Disposable {
     public interface Handler {
         /*
@@ -17,6 +20,7 @@ public class Level implements Disposable {
     }
 
     private final short[][][] blocks;
+    private final Map<Byte, Player> players;
     /* package-private */ final int sizeX;
     /* package-private */ final int sizeY;
     /* package-private */ final int sizeZ;
@@ -26,6 +30,7 @@ public class Level implements Disposable {
 
     public Level(int sizeX, int sizeY, int sizeZ) {
         this.blocks = new short[sizeX][sizeY][sizeZ];
+        this.players = new HashMap<>();
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
@@ -39,6 +44,7 @@ public class Level implements Disposable {
         modelCache.begin();
         iterateThroughLocations((x, y, z) -> {
             Block block = getBlockDefAt(x, y, z);
+            if (block == null) return true;
             if (!block.shouldBeRenderedAt(x, y, z)) return true;
 
             block.initGraphics();
@@ -49,6 +55,33 @@ public class Level implements Disposable {
             return true;
         });
         modelCache.end();
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public boolean containsPlayer(byte id) {
+        return getPlayer(id) != null;
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public void addPlayer(Player player) {
+        if (player.id == -1) return;
+
+        players.put(player.id, player);
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public Player getPlayer(byte id) {
+        return players.get(id);
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public boolean removePlayer(Player player) {
+        return removePlayer(player.id) != null;
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public Player removePlayer(byte id) {
+        return players.remove(id);
     }
 
     public final void iterateThroughLocations(Handler handler) {

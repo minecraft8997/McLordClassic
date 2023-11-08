@@ -5,23 +5,19 @@ import ru.mclord.classic.Player;
 
 public class PlayerSpawnEvent extends Event {
     private final Player player;
-    private final boolean firstSpawnOnCurrentLevel;
 
-    private PlayerSpawnEvent(Player player, boolean firstSpawnOnCurrentLevel) {
+    private PlayerSpawnEvent(Player player) {
         super(false);
 
         this.player = player;
-        this.firstSpawnOnCurrentLevel = firstSpawnOnCurrentLevel;
     }
 
-    public static PlayerSpawnEvent create(
-            Player player, boolean firstSpawnOnCurrentLevel
-    ) {
-        return new PlayerSpawnEvent(player, firstSpawnOnCurrentLevel);
+    public static PlayerSpawnEvent create(Player player) {
+        return new PlayerSpawnEvent(player);
     }
 
     public boolean isFirstSpawnOnCurrentLevel() {
-        return firstSpawnOnCurrentLevel;
+        return (player != null);
     }
 
     public Player getPlayer() {
