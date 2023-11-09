@@ -29,10 +29,6 @@ public class Helper {
         ScreenUtils.clear(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f, true);
     }
 
-    public static void clearScreen() {
-        ScreenUtils.clear(0.0f, 0.0f, 0.0f, 1.0f);
-    }
-
     public static File[] listPlugins() {
         File pluginsDir = new File("./plugins/");
         if (!pluginsDir.isDirectory()) {

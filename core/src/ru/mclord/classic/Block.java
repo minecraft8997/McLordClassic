@@ -15,6 +15,10 @@ public class Block implements Disposable {
         boolean doIHaveThisPermission();
     }
 
+    public enum Solidity {
+        SOLID, WATER, LAVA, WALKTHROUGH
+    }
+
     public enum InteractPermission {
         EVERYONE(() -> true),
         OP_ONLY(() -> {
@@ -39,8 +43,9 @@ public class Block implements Disposable {
     // game while plugins will be required to use getters
     /* package-private */ final short id;
     /* package-private */ final String displayName;
-    /* package-private */ final boolean liquid;
-    /* package-private */ final boolean canWalkThrough;
+    /* package-private */ final Solidity solidity;
+    /* package-private */ final int movementSpeed;
+    /* package-private */ final boolean slab;
     /* package-private */ final InteractPermission permissionBuild;
     /* package-private */ final InteractPermission permissionBreak;
     /* package-private */ final int topTextureId;
@@ -55,8 +60,9 @@ public class Block implements Disposable {
     public Block(
             short id,
             String displayName,
-            boolean liquid,
-            boolean canWalkThrough,
+            Solidity solidity,
+            int movementSpeed,
+            boolean slab,
             InteractPermission permissionBuild,
             InteractPermission permissionBreak,
             int topTextureId,
@@ -66,8 +72,9 @@ public class Block implements Disposable {
         this(
                 id,
                 displayName,
-                liquid,
-                canWalkThrough,
+                solidity,
+                movementSpeed,
+                slab,
                 permissionBuild,
                 permissionBreak,
                 topTextureId,
@@ -82,8 +89,9 @@ public class Block implements Disposable {
     public Block(
             short id,
             String displayName,
-            boolean liquid,
-            boolean canWalkThrough,
+            Solidity solidity,
+            int movementSpeed,
+            boolean slab,
             InteractPermission permissionBuild,
             InteractPermission permissionBreak,
             int topTextureId,
@@ -95,8 +103,9 @@ public class Block implements Disposable {
     ) {
         this.id = id;
         this.displayName = displayName;
-        this.liquid = liquid;
-        this.canWalkThrough = canWalkThrough;
+        this.solidity = solidity;
+        this.movementSpeed = movementSpeed;
+        this.slab = slab;
         this.permissionBuild = permissionBuild;
         this.permissionBreak = permissionBreak;
         this.topTextureId = topTextureId;
@@ -121,11 +130,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(frontTextureId)))
-        ).rect(-1.0f, -1.0f, -1.0f,
-                -1.0f, 1.0f, -1.0f,
-                1.0f, 1.0f, -1.0f,
-                1.0f, -1.0f, -1.0f,
-                0f, 0f, -1f
+        ).rect(-0.5f, -0.5f, -0.5f,
+                -0.5f, 0.5f, -0.5f,
+                0.5f, 0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0f, 0f, -0.5f
         );
 
         modelBuilder.part(
@@ -134,11 +143,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(backTextureId)))
-        ).rect(-1.0f, 1.0f, 1.0f,
-                -1.0f, -1.0f, 1.0f,
-                1.0f, -1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                0f, 0f, 1f
+        ).rect(-0.5f, 0.5f, 0.5f,
+                -0.5f, -0.5f, 0.5f,
+                0.5f, -0.5f, 0.5f,
+                0.5f, 0.5f, 0.5f,
+                0f, 0f, 0.5f
         );
 
         modelBuilder.part(
@@ -147,11 +156,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(bottomTextureId)))
-        ).rect(-1.0f, -1.0f, 1.0f,
-                -1.0f, -1.0f, -1.0f,
-                1.0f, -1.0f, -1.0f,
-                1.0f, -1.0f, 1.0f,
-                0f, -1f, 0f
+        ).rect(-0.5f, -0.5f, 0.5f,
+                -0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, 0.5f,
+                0f, -0.5f, 0f
         );
 
         modelBuilder.part(
@@ -160,11 +169,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(topTextureId)))
-        ).rect(-1.0f, 1.0f, -1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, -1.0f,
-                0f, 1f, 0f
+        ).rect(-0.5f, 0.5f, -0.5f,
+                -0.5f, 0.5f, 0.5f,
+                0.5f, 0.5f, 0.5f,
+                0.5f, 0.5f, -0.5f,
+                0f, 0.5f, 0f
         );
 
         modelBuilder.part(
@@ -173,11 +182,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(leftTextureId)))
-        ).rect(-1.0f, -1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, -1.0f,
-                -1.0f, -1.0f, -1.0f,
-                -1f, 0f, 0f
+        ).rect(-0.5f, -0.5f, 0.5f,
+                -0.5f, 0.5f, 0.5f,
+                -0.5f, 0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+                -0.5f, 0f, 0f
         );
 
         modelBuilder.part(
@@ -186,11 +195,11 @@ public class Block implements Disposable {
                 Helper.ATTR,
                 new Material(TextureAttribute
                         .createDiffuse(manager.getTexture(rightTextureId)))
-        ).rect(1.0f, -1.0f, -1.0f,
-                1.0f, 1.0f, -1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, -1.0f, 1.0f,
-                1f, 0f, 0f
+        ).rect(0.5f, -0.5f, -0.5f,
+                0.5f, 0.5f, -0.5f,
+                0.5f, 0.5f, 0.5f,
+                0.5f, -0.5f, 0.5f,
+                0.5f, 0f, 0f
         );
 
         model = modelBuilder.end();
@@ -208,12 +217,16 @@ public class Block implements Disposable {
         return displayName;
     }
 
-    public final boolean isLiquid() {
-        return liquid;
+    public final Solidity getSolidity() {
+        return solidity;
     }
 
-    public final boolean canWalkThrough() {
-        return canWalkThrough;
+    public int getMovementSpeed() {
+        return movementSpeed;
+    }
+
+    public boolean isSlab() {
+        return slab;
     }
 
     public final InteractPermission getPermissionBuild() {

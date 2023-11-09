@@ -52,7 +52,7 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Helper.clearScreen();
+        Helper.clearDepthRGB(0, 0, 0);
 
         batch.begin();
         font.draw(batch, (status != null ? status : "Loading"), 32, height - 32);

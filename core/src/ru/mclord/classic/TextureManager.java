@@ -36,6 +36,7 @@ public class TextureManager implements Disposable {
 
     private static final TextureManager INSTANCE = new TextureManager();
     private final Texture[] textures = new Texture[TEXTURE_COUNT];
+    private Texture emptyTexture;
 
     private TextureManager() {
     }
@@ -61,6 +62,9 @@ public class TextureManager implements Disposable {
                     "image must be " + IMAGE_WIDTH + "x" + IMAGE_HEIGHT);
         }
          */
+        Pixmap emptyPixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
+        emptyTexture = new Texture(emptyPixmap);
+        emptyPixmap.dispose();
         for (int i = 0; i < TEXTURE_COUNT; i++) {
             Pixmap pixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
 
@@ -88,6 +92,7 @@ public class TextureManager implements Disposable {
         }
     }
 
+    @SuppressWarnings("IOStreamConstructor")
     private static InputStream createInputStream(
             String path, boolean allowNet, boolean allowFileSystem
     ) throws IOException {
@@ -131,14 +136,17 @@ public class TextureManager implements Disposable {
 
     @ShouldBeCalledBy(thread = "main")
     public Texture getTexture(int i) {
+        if (i == -1) return emptyTexture;
+
         return textures[i];
     }
 
     @Override
     @ShouldBeCalledBy(thread = "main")
     public void dispose() {
+        Helper.dispose(emptyTexture);
         for (Texture texture : textures) {
-            if (texture != null) texture.dispose();
+            Helper.dispose(texture);
         }
     }
 }

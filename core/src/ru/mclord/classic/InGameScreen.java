@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.utils.ScreenUtils;
 
 public class InGameScreen implements Screen {
     private static final InGameScreen INSTANCE = new InGameScreen();
