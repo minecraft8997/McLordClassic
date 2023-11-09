@@ -20,8 +20,8 @@ public class GameParameters {
         if (System.getProperty("mclordAddress") == null) {
             System.setProperty("mclordAddress", "localhost");
         }
-        if (System.getProperty("mclordUsername") == null) {
-            System.setProperty("mclordUsername", "25565");
+        if (System.getProperty("mclordPort") == null) {
+            System.setProperty("mclordPort", "25565");
         }
     }
 
