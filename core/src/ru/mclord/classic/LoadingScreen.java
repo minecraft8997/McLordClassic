@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class LoadingScreen implements Screen {
-    public static final int PROGRESS_HEIGHT = 32;
+    public static final int PROGRESS_BAR_HEIGHT = 32;
 
     private static final LoadingScreen INSTANCE = new LoadingScreen();
 
@@ -15,7 +15,7 @@ public class LoadingScreen implements Screen {
     private SpriteBatch batch;
     private Texture progressTexture;
     private String status;
-    private byte progress;
+    private volatile byte progress;
     private int width;
     private int height;
 
@@ -24,9 +24,9 @@ public class LoadingScreen implements Screen {
         batch = new SpriteBatch();
 
         Pixmap progressPixmap =
-                new Pixmap(1, PROGRESS_HEIGHT, Pixmap.Format.RGB888);
-        for (int i = 0; i < PROGRESS_HEIGHT; i++) {
-            progressPixmap.drawPixel(0, i, 0xFFFFFF);
+                new Pixmap(1, PROGRESS_BAR_HEIGHT, Pixmap.Format.RGBA8888);
+        for (int i = 0; i < PROGRESS_BAR_HEIGHT; i++) {
+            progressPixmap.drawPixel(0, i, 0xFFFFFFFF);
         }
         progressTexture = new Texture(progressPixmap);
 
@@ -47,6 +47,7 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void show() {
+        setProgress((byte) 0);
     }
 
     @Override
@@ -60,9 +61,11 @@ public class LoadingScreen implements Screen {
 
             int x = i * TextureManager.TEXTURE_SIZE;
             if (x >= width) break;
-            batch.draw(blockTexture, x, PROGRESS_HEIGHT);
+            batch.draw(blockTexture, x, PROGRESS_BAR_HEIGHT);
         }
-        for (int i = 0; i < progress; i++) {
+        double percentage = progress / 100.0D;
+        int progressBarWidth = (int) (width * percentage);
+        for (int i = 0; i < progressBarWidth; i++) {
             batch.draw(progressTexture, i, 0);
         }
         batch.end();

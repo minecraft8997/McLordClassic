@@ -59,25 +59,23 @@ public class InGameScreen implements Screen {
 
         camera = new PerspectiveCamera(
                 90.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position
-                .set(level.sizeX / 2.0f, 1, level.sizeZ / 2.0f);
+        camera.position.set(0, 0, 0);
         camera.near = 1f;
         camera.far = 300f;
         camera.update();
 
-        cameraController = new McLordFirstPersonCameraController(camera);
+        level.initGraphics();
 
+        cameraController = new McLordFirstPersonCameraController(camera);
         Gdx.input.setInputProcessor(cameraController);
         Gdx.input.setCursorCatched(true);
-
-        level.initGraphics();
     }
 
     @Override
     public void render(float delta) {
         cameraController.update();
 
-        ScreenUtils.clear(1.0f, 1.0f, 1.0f, 1.0f);
+        Helper.clearDepthRGB(17, 137, 217);
 
         modelBatch.begin(camera);
         level.render(modelBatch, environment);

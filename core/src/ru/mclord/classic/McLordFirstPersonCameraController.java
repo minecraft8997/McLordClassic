@@ -8,6 +8,8 @@ import com.badlogic.gdx.math.Vector3;
 
 public class McLordFirstPersonCameraController extends FirstPersonCameraController {
     private final Vector3 tmp = new Vector3();
+    private final Vector3 tmp2 = new Vector3();
+    private final Vector3 tmp3 = new Vector3();
     private final Vector3 lastCameraPosition;
 
     public McLordFirstPersonCameraController(Camera camera) {
@@ -58,5 +60,20 @@ public class McLordFirstPersonCameraController extends FirstPersonCameraControll
         }
 
         super.update(deltaTime);
+    }
+
+    // thanks to https://github.com/libgdx/libgdx/issues/4023#issuecomment-211675619
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        float deltaX = -Gdx.input.getDeltaX() * degreesPerPixel;
+        float deltaY = -Gdx.input.getDeltaY() * degreesPerPixel;
+        camera.direction.rotate(camera.up, deltaX);
+        Vector3 oldPitchAxis = tmp.set(camera.direction).crs(camera.up).nor();
+        Vector3 newDirection = tmp2.set(camera.direction).rotate(tmp, deltaY);
+        Vector3 newPitchAxis = tmp3.set(tmp2).crs(camera.up);
+        if (!newPitchAxis.hasOppositeDirection(oldPitchAxis))
+            camera.direction.set(newDirection);
+
+        return true;
     }
 }

@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Disposable;
 
+import java.util.Arrays;
+
 public class Block implements Disposable {
     public interface PermissionChecker {
         boolean doIHaveThisPermission();

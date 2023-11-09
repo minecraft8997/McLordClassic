@@ -99,8 +99,10 @@ public class McLordClassic extends Game {
 	@SuppressWarnings("SynchronizeOnNonFinalField")
 	public void render() {
 		synchronized (taskList) {
-			while (!taskList.isEmpty()) {
+			int size = taskList.size();
+			for (int i = 0; i < size; i++) {
 				Runnable task = taskList.poll();
+				//noinspection DataFlowIssue
 				task.run();
 				if (task instanceof NetworkingRunnable) {
 					synchronized (networkingThread) {
