@@ -45,7 +45,6 @@ public class Level implements Disposable {
         modelCache.begin();
         iterateThroughLocations((x, y, z) -> {
             Block block = getBlockDefAt(x, y, z);
-            if (block == null) return true;
             if (!block.shouldBeRenderedAt(x, y, z)) return true;
 
             block.initGraphics();

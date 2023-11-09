@@ -36,6 +36,7 @@ public class TextureManager implements Disposable {
 
     private static final TextureManager INSTANCE = new TextureManager();
     private final Texture[] textures = new Texture[TEXTURE_COUNT];
+    private final Pixmap[] temporaryPixmaps = new Pixmap[TEXTURE_COUNT];
     private Texture emptyTexture;
 
     private TextureManager() {
@@ -63,6 +64,11 @@ public class TextureManager implements Disposable {
         }
          */
         Pixmap emptyPixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
+        for (int i = 0; i < TEXTURE_SIZE; i++) {
+            for (int j = 0; j < TEXTURE_SIZE; j++) {
+                emptyPixmap.drawPixel(i, j, 0);
+            }
+        }
         emptyTexture = new Texture(emptyPixmap);
         emptyPixmap.dispose();
         for (int i = 0; i < TEXTURE_COUNT; i++) {
@@ -88,7 +94,7 @@ public class TextureManager implements Disposable {
             }
             textures[i] = new Texture(pixmap);
 
-            pixmap.dispose();
+            temporaryPixmaps[i] = pixmap;
         }
     }
 
@@ -147,6 +153,9 @@ public class TextureManager implements Disposable {
         Helper.dispose(emptyTexture);
         for (Texture texture : textures) {
             Helper.dispose(texture);
+        }
+        for (Pixmap pixmap : temporaryPixmaps) {
+            Helper.dispose(pixmap);
         }
     }
 }

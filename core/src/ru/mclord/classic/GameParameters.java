@@ -14,9 +14,15 @@ public class GameParameters {
     }
 
     public static void setupDebugProperties() {
-        System.setProperty("mclordUsername", "deewend");
-        System.setProperty("mclordAddress", "localhost");
-        System.setProperty("mclordPort", "25565");
+        if (System.getProperty("mclordUsername") == null) {
+            System.setProperty("mclordUsername", "Dev");
+        }
+        if (System.getProperty("mclordAddress") == null) {
+            System.setProperty("mclordAddress", "localhost");
+        }
+        if (System.getProperty("mclordUsername") == null) {
+            System.setProperty("mclordUsername", "25565");
+        }
     }
 
     public static void collectAndVerify() {

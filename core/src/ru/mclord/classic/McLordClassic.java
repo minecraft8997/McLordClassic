@@ -175,6 +175,7 @@ public class McLordClassic extends Game {
 				break;
 			}
 			case IN_GAME: {
+				LoadingScreen.getInstance().setStatus("Preparing level");
 				setScreen(InGameScreen.getInstance());
 
 				break;
