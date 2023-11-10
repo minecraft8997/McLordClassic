@@ -80,6 +80,7 @@ public class NetworkingThread extends Thread {
     public static synchronized void reportDisconnected(String reason) {
         if (reportedDisconnected) return;
 
+        System.out.println("Disconnected: " + reason);
         McLordClassic.game().networkingThread.interrupt();
         EventManager.getInstance().fireEvent(DisconnectEvent.create(reason));
 
