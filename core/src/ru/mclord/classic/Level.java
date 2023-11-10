@@ -24,7 +24,6 @@ public class Level implements Disposable {
     /* package-private */ final int sizeX;
     /* package-private */ final int sizeY;
     /* package-private */ final int sizeZ;
-    private int added;
 
     protected ModelCache modelCache;
     private boolean searchResult;
@@ -51,7 +50,6 @@ public class Level implements Disposable {
             ModelInstance modelInstance = new ModelInstance(block.getModel());
             modelInstance.transform = new Matrix4().translate(x, y, z);
             modelCache.add(modelInstance);
-            added++;
 
             return true;
         });

@@ -6,10 +6,33 @@ import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
 import ru.mclord.classic.events.PlayerSpawnEvent;
 
 import java.util.ArrayDeque;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Queue;
 
 public class McLordClassic extends Game {
+	private static class TaskContainer {
+		private final Runnable task;
+		private final Thread thread;
+		private final StackTraceElement[] stacktrace;
+		private final long timestamp;
+
+		public TaskContainer(Runnable task, Thread thread, StackTraceElement[] stacktrace) {
+			this.task = task;
+			this.thread = thread;
+			this.stacktrace = stacktrace;
+			timestamp = System.currentTimeMillis();
+		}
+
+		public void printStackTrace() {
+			for (int i = 1; i < stacktrace.length; i++) {
+				StackTraceElement element = stacktrace[i];
+
+				System.err.println("        at " + element.toString());
+			}
+		}
+	}
+
 	public enum GameStage {
 		INTERNAL_INITIALIZATION,
 		PRE_INITIALIZATION,
@@ -24,13 +47,13 @@ public class McLordClassic extends Game {
 
 	public static final boolean DEBUG = true;
 	public static final String APP_NAME = "McLordClassic";
-	public static final String VERSION = "0.1";
-	public static final int VERSION_CODE = 1;
+	public static final String VERSION = "0.1.1";
+	public static final int VERSION_CODE = 2;
 
 	private static final McLordClassic INSTANCE = new McLordClassic();
 
 	private Properties gameProperties;
-	private final Queue<Runnable> taskList = new ArrayDeque<>();
+	private final Queue<TaskContainer> taskList = new ArrayDeque<>();
 	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
 	/* package-private */ volatile NetworkingThread networkingThread;
 	/* package-private */ Level level;
@@ -70,9 +93,17 @@ public class McLordClassic extends Game {
 		return level.getPlayer((byte) -1);
 	}
 
+	@ShouldBeCalledBy(thread = "main")
+	public static String getProperty(String key) {
+		return game().gameProperties.getProperty(key);
+	}
+
 	public void addTask(Runnable task) {
+		Thread currentThread = Thread.currentThread();
+		StackTraceElement[] stacktrace = currentThread.getStackTrace();
+
 		synchronized (taskList) {
-			taskList.offer(task);
+			taskList.offer(new TaskContainer(task, currentThread, stacktrace));
 		}
 	}
 
@@ -101,9 +132,24 @@ public class McLordClassic extends Game {
 		synchronized (taskList) {
 			int size = taskList.size();
 			for (int i = 0; i < size; i++) {
-				Runnable task = taskList.poll();
+				TaskContainer container = taskList.poll();
 				//noinspection DataFlowIssue
-				task.run();
+				Runnable task = container.task;
+				try {
+					task.run();
+				} catch (Throwable t) {
+					System.err.println("Failed to complete a task:");
+					t.printStackTrace();
+					System.err.println("Details of the thread which " +
+							"enqueued the task: " + container.thread.toString());
+					System.err.println("Stacktrace snapshot of " +
+							"the thread at the moment the task was enqueued:");
+					container.printStackTrace();
+					System.err.println("Date added: " + new Date(container.timestamp));
+					System.err.println("The game will be terminated");
+
+					System.exit(-1);
+				}
 				if (task instanceof NetworkingRunnable) {
 					synchronized (networkingThread) {
 						networkingThread.finishedExecuting = true;
@@ -176,7 +222,7 @@ public class McLordClassic extends Game {
 			}
 			case IN_GAME: {
 				LoadingScreen.getInstance().setStatus("Preparing level");
-				setScreen(InGameScreen.getInstance());
+				addTask(() -> setScreen(InGameScreen.getInstance()));
 
 				break;
 			}

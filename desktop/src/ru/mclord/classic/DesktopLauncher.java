@@ -20,21 +20,19 @@ public class DesktopLauncher {
 		props.setProperty("audio", "true");
 		props.setProperty("hdpiMode", "Logical");
 		props.setProperty("texturePack", TextureManager.DEFAULT_TEXTURE_PACK);
+		props.setProperty("fov", "90.0");
+		props.setProperty("cameraFar", "300.0");
 
 		File propertiesFile = new File("game.properties");
-		if (propertiesFile.createNewFile()) {
-			try (OutputStream stream = new FileOutputStream(propertiesFile)) {
-				props.store(stream, "hdpiMode can be either Logical " +
-						"or Pixels, fpsLimit=0 means it's unlimited");
-			}
-
-			System.out.println("Written default game.properties");
-		} else {
+		if (propertiesFile.exists()) {
 			try (InputStream stream = new FileInputStream(propertiesFile)) {
 				props.load(stream);
 			}
 		}
-
+		try (OutputStream stream = new FileOutputStream(propertiesFile)) {
+			props.store(stream, "hdpiMode can be either Logical " +
+					"or Pixels, fpsLimit=0 means it's unlimited");
+		}
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 
 		int width = Integer.parseInt(props.getProperty("windowWidth"));

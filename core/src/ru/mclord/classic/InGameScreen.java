@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import ru.mclord.classic.events.CustomizeEnvironmentEvent;
 
 public class InGameScreen implements Screen {
     private static final InGameScreen INSTANCE = new InGameScreen();
@@ -20,8 +21,12 @@ public class InGameScreen implements Screen {
     private Level level;
     private Environment environment;
     private PerspectiveCamera camera;
+    private final float fov;
+    private final float cameraFar;
 
     private InGameScreen() {
+        fov = Float.parseFloat(McLordClassic.getProperty("fov"));
+        cameraFar = Float.parseFloat(McLordClassic.getProperty("cameraFar"));
     }
 
     public static InGameScreen getInstance() {
@@ -49,18 +54,15 @@ public class InGameScreen implements Screen {
         modelBatch = new ModelBatch();
 
         environment = new Environment();
-        environment.set(new ColorAttribute(ColorAttribute.AmbientLight,
-                0.5f, 0.5f, 0.5f, 1.0f));
-        environment.add(new DirectionalLight().set(
-                0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.5f));
-        environment.add(new DirectionalLight().set(
-                0.2f, 0.2f, 0.2f, 1f, 0.8f, 0.5f));
+        EventManager.getInstance().fireEvent(CustomizeEnvironmentEvent.create(environment));
 
+        Player player = McLordClassic.getPlayer();
         camera = new PerspectiveCamera(
-                90.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(0, 0, 0);
-        camera.near = 1f;
-        camera.far = 300f;
+                fov, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // camera.position.set(player.spawnLocation.x, player.spawnLocation.y, player.spawnLocation.z);
+        camera.position.set(0f, 0f, 0f);
+        camera.near = 0.35f; // todo might be not the best value
+        camera.far = cameraFar;
         camera.update();
 
         level.initGraphics();

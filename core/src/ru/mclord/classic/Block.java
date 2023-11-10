@@ -65,7 +65,6 @@ public class Block implements Disposable {
     /* package-private */ final int bottomTextureId;
 
     protected Model model;
-    private final List<Texture> temporaryTextures;
 
     public Block(
             short id,
@@ -124,8 +123,6 @@ public class Block implements Disposable {
         this.frontTextureId = frontTextureId;
         this.backTextureId = backTextureId;
         this.bottomTextureId = bottomTextureId;
-
-        this.temporaryTextures = new ArrayList<>();
     }
     
     public void initGraphics() {
@@ -140,8 +137,8 @@ public class Block implements Disposable {
                 Helper.FRONT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(
-                        rotate90Texture(manager.getTexture(frontTextureId), false)))
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(manager.getTexture(frontTextureId), false)))
         ).rect(-0.5f, -0.5f, -0.5f,
                 -0.5f, 0.5f, -0.5f,
                 0.5f, 0.5f, -0.5f,
@@ -153,8 +150,8 @@ public class Block implements Disposable {
                 Helper.BACK_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(
-                        rotate90Texture(manager.getTexture(backTextureId), true)))
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(manager.getTexture(backTextureId), true)))
         ).rect(-0.5f, 0.5f, 0.5f,
                 -0.5f, -0.5f, 0.5f,
                 0.5f, -0.5f, 0.5f,
@@ -192,8 +189,8 @@ public class Block implements Disposable {
                 Helper.LEFT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(
-                        rotate90Texture(manager.getTexture(leftTextureId), false)))
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(manager.getTexture(leftTextureId), false)))
         ).rect(-0.5f, -0.5f, 0.5f,
                 -0.5f, 0.5f, 0.5f,
                 -0.5f, 0.5f, -0.5f,
@@ -205,8 +202,8 @@ public class Block implements Disposable {
                 Helper.RIGHT_SIDE_NAME,
                 GL20.GL_TRIANGLES,
                 Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(
-                        rotate90Texture(manager.getTexture(rightTextureId), false)))
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(manager.getTexture(rightTextureId), false)))
         ).rect(0.5f, -0.5f, -0.5f,
                 0.5f, 0.5f, -0.5f,
                 0.5f, 0.5f, 0.5f,
@@ -215,9 +212,7 @@ public class Block implements Disposable {
         );
         model = modelBuilder.end();
 
-        for (Material material : model.materials) {
-            material.set(ALPHA);
-        }
+        for (Material material : model.materials) material.set(ALPHA);
     }
 
     public final Model getModel() {
@@ -271,70 +266,8 @@ public class Block implements Disposable {
     public void onRightClick() {
     }
 
-    private Texture rotate90Texture(Texture texture, boolean clockwise) {
-        if (!texture.getTextureData().isPrepared()) {
-            texture.getTextureData().prepare();
-        }
-        Pixmap pixmap = texture.getTextureData().consumePixmap();
-
-        int width = texture.getWidth();
-        int height = texture.getHeight();
-        Pixmap newPixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                newPixmap.drawPixel(x, y, pixmap.getPixel(x, y));
-            }
-        }
-        rotate90Pixmap(newPixmap, clockwise);
-        Texture newTexture = new Texture(newPixmap);
-        temporaryTextures.add(newTexture);
-        newPixmap.dispose();
-
-        return newTexture;
-    }
-
-    @SuppressWarnings({"ReassignedVariable", "SuspiciousNameCombination"})
-    private void rotate90Pixmap(Pixmap pixmap, boolean clockwise) {
-        int width = pixmap.getWidth();
-        int height = pixmap.getHeight();
-
-        if (width != height || Math.floorMod(width, 2) != 0) {
-            throw new IllegalArgumentException();
-        }
-
-        if (clockwise) {
-            for (int x = 0; x < width / 2; x++) {
-                for (int y = x; y < width - x - 1; y++) {
-                    int tmp = pixmap.getPixel(x, y);
-                    pixmap.drawPixel(x, y, pixmap.getPixel(width - 1 - y, x));
-                    pixmap.drawPixel(width - 1 - y, x, pixmap
-                            .getPixel(width - 1 - x, width - 1 - y));
-                    pixmap.drawPixel(width - 1 - x, width - 1 - y, pixmap
-                            .getPixel(y, width - 1 - x));
-                    pixmap.drawPixel(y, width - 1 - x, tmp);
-                }
-            }
-        } else {
-            for (int x = 0; x < width / 2; x++) {
-                for (int y = x; y < width - x - 1; y++) {
-                    int tmp = pixmap.getPixel(x, y);
-                    pixmap.drawPixel(x, y, pixmap.getPixel(y, width - 1 - x));
-                    pixmap.drawPixel(y, width - 1 - x, pixmap
-                            .getPixel(width - 1 - x, width - 1 - y));
-                    pixmap.drawPixel(width - 1 - x, width - 1 - y, pixmap
-                            .getPixel(width - 1 - y, x));
-                    pixmap.drawPixel(width - 1 - y, x, tmp);
-                }
-            }
-        }
-    }
-
     @Override
     public void dispose() {
         Helper.dispose(model); model = null;
-        for (Texture texture : temporaryTextures) {
-            texture.dispose();
-        }
-        temporaryTextures.clear();
     }
 }

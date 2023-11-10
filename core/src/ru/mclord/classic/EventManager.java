@@ -26,7 +26,7 @@ public class EventManager implements Manager {
         eventHandlerList.add(eventHandler);
     }
 
-    public synchronized <T extends Event> void fireEvent(T event) {
+    public synchronized <T extends Event> boolean fireEvent(T event) {
         Objects.requireNonNull(event);
 
         if ("true".equalsIgnoreCase(System.getProperty("mclordDebugEvents"))) {
@@ -34,7 +34,7 @@ public class EventManager implements Manager {
         }
 
         Class<? extends Event> eventClass = event.getClass();
-        if (!eventHandlerMap.containsKey(eventClass)) return;
+        if (!eventHandlerMap.containsKey(eventClass)) return true;
 
         List<EventHandler<? extends Event>> handlerList =
                 eventHandlerMap.get(eventClass);
@@ -43,6 +43,8 @@ public class EventManager implements Manager {
             McLordClassic.game().addTask(() ->
                     ((EventHandler<T>) eventHandler).handleEvent(event));
         }
+
+        return true;
     }
 
     @Override

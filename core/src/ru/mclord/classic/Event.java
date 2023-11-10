@@ -7,6 +7,11 @@ public abstract class Event {
 
     public Event(boolean cancellable) {
         this.cancellable = cancellable;
+
+        if (cancellable) {
+            System.out.println(getClass() + ": cancellable events " +
+                    "support is not implemented yet. Calling setCancelled() has no effect");
+        }
     }
 
     /*

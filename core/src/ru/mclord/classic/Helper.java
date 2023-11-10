@@ -4,10 +4,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class Helper {
     public static final int PROTOCOL_STRING_LENGTH = 64;
@@ -27,6 +24,15 @@ public class Helper {
 
     public static void clearDepthRGB(int r, int g, int b) {
         ScreenUtils.clear(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f, true);
+    }
+
+    public static String getStacktrace(Throwable t) {
+        StringWriter writer0 = new StringWriter();
+        PrintWriter writer = new PrintWriter(writer0);
+        t.printStackTrace(writer);
+
+        // we don't have to close any of these writers
+        return writer0.toString();
     }
 
     public static File[] listPlugins() {
