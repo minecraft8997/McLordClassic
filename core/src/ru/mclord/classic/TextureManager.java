@@ -68,11 +68,11 @@ public class TextureManager implements Disposable {
         }
          */
         Pixmap emptyPixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
-        for (int i = 0; i < TEXTURE_SIZE; i++) {
-            for (int j = 0; j < TEXTURE_SIZE; j++) {
-                emptyPixmap.drawPixel(i, j, 0x00000001);
-            }
-        }
+        //for (int i = 0; i < TEXTURE_SIZE; i++) {
+        //    for (int j = 0; j < TEXTURE_SIZE; j++) {
+                //emptyPixmap.drawPixel(i, j, 0xFF000009);
+        //    }
+        //}
         emptyTexture = new Texture(emptyPixmap);
         temporaryPixmaps[temporaryPixmaps.length - 1] = emptyPixmap;
         for (int i = 0; i < TEXTURE_COUNT; i++) {

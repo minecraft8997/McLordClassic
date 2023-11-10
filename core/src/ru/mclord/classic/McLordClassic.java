@@ -11,16 +11,24 @@ import java.util.Properties;
 import java.util.Queue;
 
 public class McLordClassic extends Game {
-	private static class TaskContainer {
+	/* package-private */ static class TaskContainer {
 		private final Runnable task;
 		private final Thread thread;
 		private final StackTraceElement[] stacktrace;
+		private final boolean subscribed;
 		private final long timestamp;
+		/* package-private */ volatile boolean finished;
 
-		public TaskContainer(Runnable task, Thread thread, StackTraceElement[] stacktrace) {
+		public TaskContainer(
+				Runnable task,
+				Thread thread,
+				StackTraceElement[] stacktrace,
+				boolean subscribed
+		) {
 			this.task = task;
 			this.thread = thread;
 			this.stacktrace = stacktrace;
+			this.subscribed = subscribed;
 			timestamp = System.currentTimeMillis();
 		}
 
@@ -47,13 +55,14 @@ public class McLordClassic extends Game {
 
 	public static final boolean DEBUG = true;
 	public static final String APP_NAME = "McLordClassic";
-	public static final String VERSION = "0.1.1";
+	public static final String VERSION = "0.1.2";
 	public static final int VERSION_CODE = 2;
 
 	private static final McLordClassic INSTANCE = new McLordClassic();
 
+	/* package-private */ final Thread mainThread;
 	private Properties gameProperties;
-	private final Queue<TaskContainer> taskList = new ArrayDeque<>();
+	/* package-private */ final Queue<TaskContainer> taskList = new ArrayDeque<>();
 	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
 	/* package-private */ volatile NetworkingThread networkingThread;
 	/* package-private */ Level level;
@@ -61,6 +70,8 @@ public class McLordClassic extends Game {
 	/* package-private */ String disconnectReason;
 
 	private McLordClassic() {
+		this.mainThread = Thread.currentThread();
+
 		if (DEBUG) GameParameters.setupDebugProperties();
 		GameParameters.collectAndVerify();
 
@@ -99,12 +110,20 @@ public class McLordClassic extends Game {
 	}
 
 	public void addTask(Runnable task) {
+		addTask(task, false);
+	}
+
+	public Object addTask(Runnable task, boolean subscribe) {
 		Thread currentThread = Thread.currentThread();
 		StackTraceElement[] stacktrace = currentThread.getStackTrace();
 
+		TaskContainer container = new TaskContainer(
+				task, currentThread, stacktrace, subscribe);
 		synchronized (taskList) {
-			taskList.offer(new TaskContainer(task, currentThread, stacktrace));
+			taskList.offer(container);
 		}
+
+		return (subscribe ? container : null);
 	}
 
 	@Override
@@ -127,7 +146,8 @@ public class McLordClassic extends Game {
 	}
 
 	@Override
-	@SuppressWarnings("SynchronizeOnNonFinalField")
+	@SuppressWarnings({"SynchronizeOnNonFinalField",
+			"SynchronizationOnLocalVariableOrMethodParameter"})
 	public void render() {
 		synchronized (taskList) {
 			int size = taskList.size();
@@ -145,15 +165,23 @@ public class McLordClassic extends Game {
 					System.err.println("Stacktrace snapshot of " +
 							"the thread at the moment the task was enqueued:");
 					container.printStackTrace();
-					System.err.println("Date added: " + new Date(container.timestamp));
+					System.err.println("Date added: " + (new Date(container.timestamp)));
 					System.err.println("The game will be terminated");
 
 					System.exit(-1);
 				}
+				if (container.subscribed) {
+					System.out.println("Attempting to notify");
+					synchronized (container) {
+						container.finished = true;
+						container.notifyAll();
+					}
+					System.out.println("Notified");
+				}
 				if (task instanceof NetworkingRunnable) {
 					synchronized (networkingThread) {
 						networkingThread.finishedExecuting = true;
-						networkingThread.notify();
+						networkingThread.notifyAll();
 					}
 				}
 			}

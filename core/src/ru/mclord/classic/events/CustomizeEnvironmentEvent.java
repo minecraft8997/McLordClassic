@@ -7,7 +7,7 @@ public class CustomizeEnvironmentEvent extends Event {
     private final Environment environment;
 
     private CustomizeEnvironmentEvent(Environment environment) {
-        super(false);
+        super(true);
 
         this.environment = environment;
     }

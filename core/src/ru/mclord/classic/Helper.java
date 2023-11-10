@@ -35,6 +35,20 @@ public class Helper {
         return writer0.toString();
     }
 
+    public static boolean isOnMainThread() {
+        return Thread.currentThread() == McLordClassic.game().mainThread;
+    }
+
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    public static void join(Object lock) throws InterruptedException {
+        synchronized (lock) {
+            while (!((McLordClassic.TaskContainer) lock).finished) {
+                System.out.println("Oops!");
+                lock.wait();
+            }
+        }
+    }
+
     public static File[] listPlugins() {
         File pluginsDir = new File("./plugins/");
         if (!pluginsDir.isDirectory()) {

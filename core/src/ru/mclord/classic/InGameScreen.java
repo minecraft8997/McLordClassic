@@ -54,13 +54,16 @@ public class InGameScreen implements Screen {
         modelBatch = new ModelBatch();
 
         environment = new Environment();
-        EventManager.getInstance().fireEvent(CustomizeEnvironmentEvent.create(environment));
+        if (!EventManager.getInstance()
+                .fireEvent(CustomizeEnvironmentEvent.create(environment))) {
+            environment = new Environment();
+        }
 
         Player player = McLordClassic.getPlayer();
         camera = new PerspectiveCamera(
                 fov, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // camera.position.set(player.spawnLocation.x, player.spawnLocation.y, player.spawnLocation.z);
-        camera.position.set(0f, 0f, 0f);
+        camera.position.set(-1.0f, -1.0f, -1.0f);
         camera.near = 0.35f; // todo might be not the best value
         camera.far = cameraFar;
         camera.update();
@@ -74,7 +77,7 @@ public class InGameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        cameraController.update();
+        cameraController.update(delta);
 
         Helper.clearDepthRGB(17, 137, 217);
 

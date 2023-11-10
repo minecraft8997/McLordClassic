@@ -26,6 +26,7 @@ public class EventManager implements Manager {
         eventHandlerList.add(eventHandler);
     }
 
+    @SuppressWarnings("unchecked")
     public synchronized <T extends Event> boolean fireEvent(T event) {
         Objects.requireNonNull(event);
 
@@ -39,9 +40,28 @@ public class EventManager implements Manager {
         List<EventHandler<? extends Event>> handlerList =
                 eventHandlerMap.get(eventClass);
         for (EventHandler<? extends Event> eventHandler : handlerList) {
-            //noinspection unchecked
-            McLordClassic.game().addTask(() ->
-                    ((EventHandler<T>) eventHandler).handleEvent(event));
+            Runnable task = () -> ((EventHandler<T>) eventHandler).handleEvent(event);
+            if (Helper.isOnMainThread()) {
+                if (event.isCancellable()) {
+                    task.run();
+                } else {
+                    McLordClassic.game().addTask(task);
+                }
+            } else {
+                Object lock = McLordClassic.game().addTask(() ->
+                        ((EventHandler<T>) eventHandler)
+                                .handleEvent(event), event.isCancellable());
+                if (event.isCancellable()) {
+                    try {
+                        Helper.join(lock);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            if (event.isCancellable() && event.isCancelled()) return false;
         }
 
         return true;
