@@ -44,13 +44,31 @@ public class McLordFirstPersonCameraController extends FirstPersonCameraControll
         }
         super.update(deltaTime);
 
-        fixCords(initialCameraPosition);
+        Vector3 newCameraPosition = new Vector3(camera.position);
+        camera.position.set(initialCameraPosition);
+
+        float dX = newCameraPosition.x - initialCameraPosition.x;
+        float dY = newCameraPosition.y - initialCameraPosition.y;
+        float dZ = newCameraPosition.z - initialCameraPosition.z;
+
+        camera.position.x += dX;
+        if (collision()) {
+            camera.position.x -= dX;
+        }
+        camera.position.y += dY;
+        if (collision()) {
+            camera.position.y -= dY;
+        }
+        camera.position.z += dZ;
+        if (collision()) {
+            camera.position.z -= dZ;
+        }
 
         camera.update(true);
     }
 
-    private void fixCords(Vector3 initialCameraPosition) {
-        if (xRay) return;
+    private boolean collision() {
+        if (xRay) return false;
 
         // too bad, fixme at some point
         int x = (int) (camera.position.x);
@@ -70,9 +88,7 @@ public class McLordFirstPersonCameraController extends FirstPersonCameraControll
         blocks[6] = level.getBlockDefAt(x, y, z1);
         blocks[7] = level.getBlockDefAt(x1, y, z1);
 
-        if (checkInvalid()) {
-            camera.position.set(initialCameraPosition);
-        }
+        return checkInvalid();
     }
 
     private boolean checkInvalid() {

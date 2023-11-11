@@ -19,7 +19,7 @@ allprojects {
 
     version = '1.0'
     ext {
-        appName = "McLord Classic"
+        appName = "McLordClassic"
         gdxVersion = '1.12.0'
         roboVMVersion = '2.3.20'
         box2DLightsVersion = '1.5'
