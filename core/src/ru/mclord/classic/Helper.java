@@ -1,6 +1,13 @@
 package ru.mclord.classic;
 
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -12,6 +19,9 @@ public class Helper {
 
     public static final int ATTR = VertexAttributes.Usage.Position |
             VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates;
+    private static final BlendingAttribute ALPHA =
+            new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
     public static final String RIGHT_SIDE_NAME = "right";
     public static final String LEFT_SIDE_NAME = "left";
     public static final String TOP_SIDE_NAME = "top";
@@ -24,6 +34,112 @@ public class Helper {
 
     public static void clearDepthRGB(int r, int g, int b) {
         ScreenUtils.clear(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f, true);
+    }
+
+    public static boolean containsIgnoreCase(String str, String[] array) {
+        // System.out.println("Searching for \"" + str + "\" in " + Arrays.toString(array));
+        for (String element : array) {
+            if (str.equalsIgnoreCase(element)) return true;
+        }
+
+        return false;
+    }
+
+    public static Model constructBlock(
+            float size,
+            Texture front,
+            Texture back,
+            Texture bottom,
+            Texture top,
+            Texture left,
+            Texture right
+    ) {
+        TextureManager manager = TextureManager.getInstance();
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        modelBuilder.node();
+
+        modelBuilder.part(
+                FRONT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(front, false)))
+        ).rect(-size, -size, -size,
+                -size, size, -size,
+                size, size, -size,
+                size, -size, -size,
+                0.0f, 0.0f, -size
+        );
+
+        modelBuilder.part(
+                BACK_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(back, true)))
+        ).rect(-size, size, size,
+                -size, -size, size,
+                size, -size, size,
+                size, size, size,
+                0.0f, 0.0f, size
+        );
+
+        modelBuilder.part(
+                BOTTOM_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(bottom))
+        ).rect(-size, -size, size,
+                -size, -size, -size,
+                size, -size, -size,
+                size, -size, size,
+                0.0f, -size, 0.0f
+        );
+
+        modelBuilder.part(
+                TOP_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(top, false)))
+        ).rect(-size, size, -size,
+                -size, size, size,
+                size, size, size,
+                size, size, -size,
+                0.0f, size, 0.0f
+        );
+
+        modelBuilder.part(
+                LEFT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(left, false)))
+        ).rect(-size, -size, size,
+                -size, size, size,
+                -size, size, -size,
+                -size, -size, -size,
+                -size, 0.0f, 0.0f
+        );
+
+        modelBuilder.part(
+                RIGHT_SIDE_NAME,
+                GL20.GL_TRIANGLES,
+                ATTR,
+                new Material(TextureAttribute.createDiffuse(manager
+                        .rotate90Texture(right, false)))
+        ).rect(size, -size, -size,
+                size, size, -size,
+                size, size, size,
+                size, -size, size,
+                size, 0.0f, 0.0f
+        );
+        Model model = modelBuilder.end();
+
+        for (Material material : model.materials) material.set(ALPHA);
+
+        return model;
     }
 
     public static String getStacktrace(Throwable t) {

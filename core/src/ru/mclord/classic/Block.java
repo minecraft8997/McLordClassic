@@ -1,20 +1,7 @@
 package ru.mclord.classic;
 
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Disposable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 public class Block implements Disposable {
     public interface PermissionChecker {
@@ -44,9 +31,6 @@ public class Block implements Disposable {
             return checker.doIHaveThisPermission();
         }
     }
-
-    private static final BlendingAttribute ALPHA =
-            new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
     // All of these fields can be directly used by the
     // game while plugins will be required to use getters
@@ -129,90 +113,15 @@ public class Block implements Disposable {
         if (model != null) return;
 
         TextureManager manager = TextureManager.getInstance();
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-        modelBuilder.node();
 
-        modelBuilder.part(
-                Helper.FRONT_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager
-                        .rotate90Texture(manager.getTexture(frontTextureId), false)))
-        ).rect(-0.5f, -0.5f, -0.5f,
-                -0.5f, 0.5f, -0.5f,
-                0.5f, 0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0f, 0f, -0.5f
+        model = Helper.constructBlock(0.5f,
+                manager.getTexture(frontTextureId),
+                manager.getTexture(backTextureId),
+                manager.getTexture(bottomTextureId),
+                manager.getTexture(topTextureId),
+                manager.getTexture(leftTextureId),
+                manager.getTexture(rightTextureId)
         );
-
-        modelBuilder.part(
-                Helper.BACK_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager
-                        .rotate90Texture(manager.getTexture(backTextureId), true)))
-        ).rect(-0.5f, 0.5f, 0.5f,
-                -0.5f, -0.5f, 0.5f,
-                0.5f, -0.5f, 0.5f,
-                0.5f, 0.5f, 0.5f,
-                0f, 0f, 0.5f
-        );
-
-        modelBuilder.part(
-                Helper.BOTTOM_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute
-                        .createDiffuse(manager.getTexture(bottomTextureId)))
-        ).rect(-0.5f, -0.5f, 0.5f,
-                -0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, 0.5f,
-                0f, -0.5f, 0f
-        );
-
-        modelBuilder.part(
-                Helper.TOP_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute
-                        .createDiffuse(manager.getTexture(topTextureId)))
-        ).rect(-0.5f, 0.5f, -0.5f,
-                -0.5f, 0.5f, 0.5f,
-                0.5f, 0.5f, 0.5f,
-                0.5f, 0.5f, -0.5f,
-                0f, 0.5f, 0f
-        );
-
-        modelBuilder.part(
-                Helper.LEFT_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager
-                        .rotate90Texture(manager.getTexture(leftTextureId), false)))
-        ).rect(-0.5f, -0.5f, 0.5f,
-                -0.5f, 0.5f, 0.5f,
-                -0.5f, 0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-                -0.5f, 0f, 0f
-        );
-
-        modelBuilder.part(
-                Helper.RIGHT_SIDE_NAME,
-                GL20.GL_TRIANGLES,
-                Helper.ATTR,
-                new Material(TextureAttribute.createDiffuse(manager
-                        .rotate90Texture(manager.getTexture(rightTextureId), false)))
-        ).rect(0.5f, -0.5f, -0.5f,
-                0.5f, 0.5f, -0.5f,
-                0.5f, 0.5f, 0.5f,
-                0.5f, -0.5f, 0.5f,
-                0.5f, 0f, 0f
-        );
-        model = modelBuilder.end();
-
-        for (Material material : model.materials) material.set(ALPHA);
     }
 
     public final Model getModel() {

@@ -70,7 +70,6 @@ public class McLordFirstPersonCameraController extends FirstPersonCameraControll
     private boolean collision() {
         if (xRay) return false;
 
-        // too bad, fixme at some point
         int x = (int) (camera.position.x);
         int y = (int) (camera.position.y);
         int z = (int) (camera.position.z);

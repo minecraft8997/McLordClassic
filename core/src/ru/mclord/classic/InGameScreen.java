@@ -7,8 +7,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import ru.mclord.classic.events.CustomizeEnvironmentEvent;
 
 public class InGameScreen implements Screen {
@@ -19,14 +17,14 @@ public class InGameScreen implements Screen {
     private ModelBatch modelBatch;
     private McLordFirstPersonCameraController cameraController;
     private Level level;
+    private final Skybox skybox;
     private Environment environment;
     private PerspectiveCamera camera;
     private final float fov;
-    private final float cameraFar;
 
     private InGameScreen() {
         fov = Float.parseFloat(McLordClassic.getProperty("fov"));
-        cameraFar = Float.parseFloat(McLordClassic.getProperty("cameraFar"));
+        skybox = new Skybox();
     }
 
     public static InGameScreen getInstance() {
@@ -65,12 +63,17 @@ public class InGameScreen implements Screen {
         // camera.position.set(player.spawnLocation.x, player.spawnLocation.y, player.spawnLocation.z);
         camera.position.set(-1.0f, -1.0f, -1.0f);
         camera.near = 0.35f; // todo might be not the best value
-        camera.far = cameraFar;
+        camera.far = 1000000000.0f;
         camera.update();
 
         level.initGraphics();
-
+        if (TextureManager.getInstance().skyboxPresented) {
+            float size = Math.max(Math.max(level.sizeX, level.sizeY), level.sizeZ);
+            skybox.setSize(size);
+            skybox.initGraphics();
+        }
         cameraController = new McLordFirstPersonCameraController(camera);
+
         Gdx.input.setInputProcessor(cameraController);
         Gdx.input.setCursorCatched(true);
     }
@@ -82,6 +85,9 @@ public class InGameScreen implements Screen {
         Helper.clearDepthRGB(17, 137, 217);
 
         modelBatch.begin(camera);
+        if (skybox.isReady()) {
+            skybox.render(modelBatch, camera);
+        }
         level.render(modelBatch, environment);
         modelBatch.end();
     }

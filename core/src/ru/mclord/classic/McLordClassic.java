@@ -1,6 +1,7 @@
 package ru.mclord.classic;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import ru.mclord.classic.events.DisconnectEvent;
 import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
 import ru.mclord.classic.events.PlayerSpawnEvent;
@@ -127,6 +128,7 @@ public class McLordClassic extends Game {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void create() {
 		System.out.println("Loading texture pack");
 		String configTexturePack = gameProperties.getProperty("texturePack");
@@ -141,6 +143,8 @@ public class McLordClassic extends Game {
 		setStage(GameStage.CONNECTING_TO_THE_SERVER);
 		networkingThread = new NetworkingThread();
 		networkingThread.start();
+
+		DefaultShader.defaultCullFace = 0; // make it possible to render skybox
 
 		setScreen(LoadingScreen.getInstance());
 	}

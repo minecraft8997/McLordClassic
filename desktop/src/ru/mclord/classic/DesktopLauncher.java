@@ -21,8 +21,8 @@ public class DesktopLauncher {
 		props.setProperty("hdpiMode", "Logical");
 		props.setProperty("texturePack", TextureManager.DEFAULT_TEXTURE_PACK);
 		props.setProperty("fov", "90.0");
-		props.setProperty("cameraFar", "300.0");
 		props.setProperty("xRay", "true");
+		props.setProperty("searchForSkybox", "true");
 
 		File propertiesFile = new File("game.properties");
 		if (propertiesFile.exists()) {

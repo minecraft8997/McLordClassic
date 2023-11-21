@@ -6,18 +6,22 @@ import com.badlogic.gdx.utils.Disposable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class TextureManager implements Disposable {
+    public interface Handler {
+        void handle(Pixmap pixmap, int xOffset, int yOffset, int x, int y);
+
+        default boolean shouldWalk(int i) {
+            return true;
+        }
+    }
+
     public static final int TEXTURE_SIZE = 16;
     public static final int IMAGE_WIDTH = 256;
     public static final int IMAGE_HEIGHT = 512;
@@ -38,11 +42,16 @@ public class TextureManager implements Disposable {
 
     private static final TextureManager INSTANCE = new TextureManager();
     private final Texture[] textures = new Texture[TEXTURE_COUNT];
-    private final Pixmap[] temporaryPixmaps = new Pixmap[TEXTURE_COUNT + 1];
+    private final boolean searchForSkybox;
+    private final Texture[] skyboxTextures = new Texture[6];
+    /* package-private */ boolean skyboxPresented;
+    private final List<Pixmap> temporaryPixmaps = new ArrayList<>();
     private final List<Texture> temporaryTextures;
     private Texture emptyTexture;
 
     private TextureManager() {
+        this.searchForSkybox = Boolean.parseBoolean(
+                McLordClassic.getProperty("searchForSkybox"));
         this.temporaryTextures = new ArrayList<>();
     }
 
@@ -50,11 +59,41 @@ public class TextureManager implements Disposable {
         return INSTANCE;
     }
 
+    @SuppressWarnings("unchecked")
     @ShouldBeCalledBy(thread = "main")
     public void load(String path, boolean allowNet, boolean allowFileSystem) {
         BufferedImage image;
-        try (InputStream inputStream = createInputStream(path, allowNet, allowFileSystem)) {
-            image = ImageIO.read(inputStream);
+        BufferedImage skybox = null;
+        try {
+            String[] query;
+            if (searchForSkybox) {
+                query = new String[]{"terrain.png", "skybox.png"};
+            } else {
+                query = new String[]{"terrain.png"};
+            }
+            Object result = createInputStreams(path, allowNet, allowFileSystem, query);
+            if (result instanceof InputStream) { // no skybox for sure :(
+                try (InputStream inputStream = (InputStream) result){
+                    image = ImageIO.read(inputStream);
+                }
+            } else {
+                Map<String, InputStream> streams = (Map<String, InputStream>) result;
+
+                InputStream terrainStream = streams.get("terrain.png");
+                if (terrainStream == null) {
+                    throw new FileNotFoundException("Could not load terrain textures");
+                }
+                image = ImageIO.read(terrainStream);
+                if (searchForSkybox) {
+                    InputStream skyboxStream = streams.get("skybox.png");
+
+                    if (skyboxStream != null) {
+                        skybox = ImageIO.read(skyboxStream);
+                    } else {
+                        System.err.println("Could not load skybox textures");
+                    }
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,37 +113,104 @@ public class TextureManager implements Disposable {
         //    }
         //}
         emptyTexture = new Texture(emptyPixmap);
-        temporaryPixmaps[temporaryPixmaps.length - 1] = emptyPixmap;
-        for (int i = 0; i < TEXTURE_COUNT; i++) {
-            Pixmap pixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
+        temporaryPixmaps.add(emptyPixmap);
 
-            int xOffset = (i % 16) * TEXTURE_SIZE;
-            int yOffset = (i / 16) * TEXTURE_SIZE;
-            for (int x = 0; x < TEXTURE_SIZE; x++) {
-                for (int y = 0; y < TEXTURE_SIZE; y++) {
-                    int color;
+        walk(textures, temporaryPixmaps, textures.length, TEXTURE_SIZE,
+                TEXTURE_SIZE, 16, (pixmap, xOffset, yOffset, x, y) -> {
+
+            int color;
+            int realX = xOffset + x;
+            int realY = yOffset + y;
+            if (realX >= width || realY >= height) color = 0;
+            else color = image.getRGB(realX, realY);
+
+            pixmap.drawPixel(x, y, textureColorFrom(color));
+        });
+
+        if (skybox != null) {
+            int skyboxWidth = skybox.getWidth();
+            int skyboxHeight = skybox.getHeight();
+            if (skyboxHeight % 2 != 0) {
+                System.err.println("skybox.png height should be even");
+
+                return;
+            }
+            int skyboxTextureSize = skyboxHeight / 2;
+            if (skyboxTextureSize * 4 != skyboxWidth) {
+                System.err.println("Unexpected width of skybox.png");
+
+                return;
+            }
+            BufferedImage finalSkybox = skybox;
+            walk(skyboxTextures, temporaryPixmaps, 8, skyboxTextureSize,
+                    skyboxTextureSize, 4, new Handler() {
+
+                @Override
+                public void handle(Pixmap pixmap, int xOffset, int yOffset, int x, int y) {
                     int realX = xOffset + x;
                     int realY = yOffset + y;
-                    if (realX >= width || realY >= height) color = 0;
-                    else color = image.getRGB(realX, realY);
+                    int color = finalSkybox.getRGB(realX, realY);
 
-                    // The highest byte here represents the alpha
-                    // value. We need to move it to the lowest byte
-                    byte alpha = (byte) ((color >> 24) & 0xFF);
-                    color <<= 8;
-                    color += alpha;
-                    pixmap.drawPixel(x, y, color);
+                    pixmap.drawPixel(x, y, textureColorFrom(color));
+                }
+
+                @Override
+                public boolean shouldWalk(int i) {
+                    return (i != 0 && i != 3);
+                }
+            });
+
+            skyboxPresented = true;
+        }
+    }
+
+    /*
+     * Turns a BufferedImage pixel color into a Texture color by
+     * moving the alpha value (the highest byte) to the lowest byte. For example
+     * fixColor(0xFFFF0000) returns 0xFF0000FF (nontransparent red)
+     * fixColor(0xFF888888) returns 0x888888FF (nontransparent grey)
+     * fixColor(0x01888888) returns 0x88888801 (transparent grey)
+     */
+    public static int textureColorFrom(int bufferedImageColor) {
+        byte alpha = (byte) ((bufferedImageColor >> 24) & 0xFF);
+        bufferedImageColor <<= 8;
+        bufferedImageColor += alpha;
+        // might be it's possible to optimize this?
+
+        return bufferedImageColor;
+    }
+
+    public void walk(
+            Texture[] textures,
+            List<Pixmap> temporaryPixmaps,
+            int textureCountInImage,
+            int textureWidth,
+            int textureHeight,
+            int textureCountInARow,
+            Handler handler
+    ) {
+        int texturesI = 0;
+        for (int i = 0; i < textureCountInImage; i++) {
+            if (!handler.shouldWalk(i)) continue;
+
+            Pixmap pixmap = new Pixmap(textureWidth, textureHeight, Pixmap.Format.RGBA8888);
+
+            int xOffset = (i % textureCountInARow) * textureWidth;
+            int yOffset = (i / textureCountInARow) * textureHeight;
+            for (int x = 0; x < textureWidth; x++) {
+                for (int y = 0; y < textureHeight; y++) {
+                    handler.handle(pixmap, xOffset, yOffset, x, y);
                 }
             }
-            textures[i] = new Texture(pixmap);
+            textures[texturesI++] = new Texture(pixmap);
 
-            temporaryPixmaps[i] = pixmap;
+            temporaryPixmaps.add(pixmap);
         }
     }
 
     @SuppressWarnings("IOStreamConstructor")
-    private static InputStream createInputStream(
-            String path, boolean allowNet, boolean allowFileSystem
+    public static Object createInputStreams(
+            String path, boolean allowNet, boolean allowFileSystem, String... objects
     ) throws IOException {
         String lowercasePath = path.toLowerCase();
         boolean isZIP = lowercasePath.endsWith(".zip");
@@ -128,17 +234,26 @@ public class TextureManager implements Disposable {
             inputStream = new FileInputStream(path);
         }
         if (isZIP) {
-            inputStream = new ZipInputStream(inputStream);
-            ZipEntry entry;
-            while ((entry = ((ZipInputStream) inputStream).getNextEntry()) != null) {
-                if (entry.isDirectory()) continue;
-                if (entry.getName().equalsIgnoreCase("terrain.png")) {
-                    return inputStream;
+            Map<String, InputStream> inputStreams = new HashMap<>();
+            try (ZipInputStream zipStream = new ZipInputStream(inputStream)) {
+                DataInputStream wrapper = new DataInputStream(zipStream);
+
+                ZipEntry entry;
+                while ((entry = zipStream.getNextEntry()) != null) {
+                    if (entry.isDirectory()) continue;
+
+                    String name = entry.getName();
+                    if (Helper.containsIgnoreCase(name, objects)) {
+                        byte[] bytes = new byte[(int) entry.getSize()];
+                        wrapper.readFully(bytes);
+                        inputStreams.put(name, new ByteArrayInputStream(bytes));
+                        System.out.println("Added " + name);
+                        if (inputStreams.size() == objects.length) break;
+                    }
                 }
             }
-            inputStream.close();
 
-            throw new FileNotFoundException("Could not find terrain.png file in the ZIP");
+            return inputStreams;
         }
 
         return inputStream;
@@ -149,6 +264,19 @@ public class TextureManager implements Disposable {
         if (i == -1) return emptyTexture;
 
         return textures[i];
+    }
+
+    public boolean isSkyboxPresented() {
+        return skyboxPresented;
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    public Texture getSkyboxTexture(int i) {
+        return skyboxTextures[i];
+    }
+
+    public Texture getEmptyTexture() {
+        return emptyTexture;
     }
 
     public Texture rotate90Texture(Texture texture, boolean clockwise) {
@@ -218,12 +346,16 @@ public class TextureManager implements Disposable {
         for (Texture texture : textures) {
             Helper.dispose(texture);
         }
+        for (Texture texture : skyboxTextures) {
+            Helper.dispose(texture);
+        }
         for (Pixmap pixmap : temporaryPixmaps) {
-            Helper.dispose(pixmap);
+            pixmap.dispose();
         }
         for (Texture texture : temporaryTextures) {
             texture.dispose();
         }
+        temporaryPixmaps.clear();
         temporaryTextures.clear();
     }
 }
