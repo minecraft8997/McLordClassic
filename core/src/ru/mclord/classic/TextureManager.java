@@ -22,29 +22,15 @@ public class TextureManager implements Disposable {
         }
     }
 
-    public static final int TEXTURE_SIZE = 16;
-    public static final int IMAGE_WIDTH = 256;
-    public static final int IMAGE_HEIGHT = 512;
-    public static final int TEXTURE_COUNT;
-
-    static {
-        //noinspection ConstantValue
-        if (IMAGE_WIDTH % TEXTURE_SIZE != 0 || IMAGE_HEIGHT % TEXTURE_SIZE != 0) {
-            throw new IllegalStateException("Invalid " +
-                    "texture size, image width or image height");
-        }
-
-        TEXTURE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT / (TEXTURE_SIZE * TEXTURE_SIZE);
-    }
-
     public static final String DEFAULT_TEXTURE_PACK =
             "https://static.classicube.net/default.zip";
 
     private static final TextureManager INSTANCE = new TextureManager();
-    private final Texture[] textures = new Texture[TEXTURE_COUNT];
+    private Texture[] textures;
     private final boolean searchForSkybox;
     private final Texture[] skyboxTextures = new Texture[6];
     /* package-private */ boolean skyboxPresented;
+    /* package-private */ int textureSize;
     private final List<Pixmap> temporaryPixmaps = new ArrayList<>();
     private final List<Texture> temporaryTextures;
     private Texture emptyTexture;
@@ -100,23 +86,27 @@ public class TextureManager implements Disposable {
 
         int width = image.getWidth();
         int height = image.getHeight();
-        /*
-        if (image.getWidth() != IMAGE_WIDTH || image.getHeight() != IMAGE_HEIGHT) {
-            throw new IllegalArgumentException("The " +
-                    "image must be " + IMAGE_WIDTH + "x" + IMAGE_HEIGHT);
+
+        int textureSize;
+        int textureCount = -1;
+        if (height == width) {
+            textureCount = 256;
+        } else if (height == width * 2) {
+            textureCount = 512;
+        } else {
+            illegalTerrainDimensions();
         }
-         */
-        Pixmap emptyPixmap = new Pixmap(TEXTURE_SIZE, TEXTURE_SIZE, Pixmap.Format.RGBA8888);
-        //for (int i = 0; i < TEXTURE_SIZE; i++) {
-        //    for (int j = 0; j < TEXTURE_SIZE; j++) {
-                //emptyPixmap.drawPixel(i, j, 0xFF000009);
-        //    }
-        //}
+        if (width % 16 != 0) illegalTerrainDimensions();
+        textureSize = width / 16;
+
+        textures = new Texture[textureCount];
+
+        Pixmap emptyPixmap = new Pixmap(textureSize, textureSize, Pixmap.Format.RGBA8888);
         emptyTexture = new Texture(emptyPixmap);
         temporaryPixmaps.add(emptyPixmap);
 
-        walk(textures, temporaryPixmaps, textures.length, TEXTURE_SIZE,
-                TEXTURE_SIZE, 16, (pixmap, xOffset, yOffset, x, y) -> {
+        walk(textures, temporaryPixmaps, textures.length, textureSize,
+                textureSize, 16, (pixmap, xOffset, yOffset, x, y) -> {
 
             int color;
             int realX = xOffset + x;
@@ -162,6 +152,10 @@ public class TextureManager implements Disposable {
 
             skyboxPresented = true;
         }
+    }
+
+    private static void illegalTerrainDimensions() {
+        throw new RuntimeException("Illegal terrain.png dimensions");
     }
 
     /*
@@ -247,7 +241,6 @@ public class TextureManager implements Disposable {
                         byte[] bytes = new byte[(int) entry.getSize()];
                         wrapper.readFully(bytes);
                         inputStreams.put(name, new ByteArrayInputStream(bytes));
-                        System.out.println("Added " + name);
                         if (inputStreams.size() == objects.length) break;
                     }
                 }
@@ -277,6 +270,14 @@ public class TextureManager implements Disposable {
 
     public Texture getEmptyTexture() {
         return emptyTexture;
+    }
+
+    public int getTextureCount() {
+        return textures.length;
+    }
+
+    public int getTextureSize() {
+        return textureSize;
     }
 
     public Texture rotate90Texture(Texture texture, boolean clockwise) {
@@ -343,8 +344,12 @@ public class TextureManager implements Disposable {
     @ShouldBeCalledBy(thread = "main")
     public void dispose() {
         Helper.dispose(emptyTexture);
-        for (Texture texture : textures) {
-            Helper.dispose(texture);
+        if (textures != null) {
+            for (Texture texture : textures) {
+                Helper.dispose(texture);
+            }
+
+            textures = null;
         }
         for (Texture texture : skyboxTextures) {
             Helper.dispose(texture);

@@ -56,10 +56,10 @@ public class LoadingScreen implements Screen {
 
         batch.begin();
         font.draw(batch, (status != null ? status : "Loading"), 32, height - 32);
-        for (int i = 0; i < TextureManager.TEXTURE_COUNT; i++) {
+        for (int i = 0; i < TextureManager.getInstance().getTextureCount(); i++) {
             Texture blockTexture = TextureManager.getInstance().getTexture(i);
 
-            int x = i * TextureManager.TEXTURE_SIZE;
+            int x = i * TextureManager.getInstance().getTextureSize();
             if (x >= width) break;
             batch.draw(blockTexture, x, PROGRESS_BAR_HEIGHT);
         }
