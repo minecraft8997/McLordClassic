@@ -128,7 +128,6 @@ public class McLordClassic extends Game {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public void create() {
 		System.out.println("Loading texture pack");
 		String configTexturePack = gameProperties.getProperty("texturePack");
@@ -143,8 +142,6 @@ public class McLordClassic extends Game {
 		setStage(GameStage.CONNECTING_TO_THE_SERVER);
 		networkingThread = new NetworkingThread();
 		networkingThread.start();
-
-		DefaultShader.defaultCullFace = 0; // make it possible to render skybox
 
 		setScreen(LoadingScreen.getInstance());
 	}

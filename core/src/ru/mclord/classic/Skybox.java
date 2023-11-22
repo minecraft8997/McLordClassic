@@ -1,8 +1,11 @@
 package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Disposable;
 
@@ -24,14 +27,20 @@ public class Skybox implements Disposable {
 
         TextureManager manager = TextureManager.getInstance();
 
-        modelInstance = new ModelInstance(Helper.constructBlock(size,
+        Model model = Helper.constructBlock(size,
                 manager.getSkyboxTexture(3),
                 manager.getSkyboxTexture(5),
                 manager.getSkyboxTexture(1),
                 manager.getSkyboxTexture(0),
                 manager.getSkyboxTexture(4),
                 manager.getSkyboxTexture(2)
-        ));
+        );
+        IntAttribute disableCullFace = IntAttribute.createCullFace(0);
+        for (Material material : model.materials) {
+            material.set(disableCullFace);
+        }
+
+        modelInstance = new ModelInstance(model);
     }
 
     public boolean isReady() {
