@@ -55,7 +55,6 @@ public class Skybox implements Disposable {
 
     @Override
     public void dispose() {
-        Helper.dispose(modelInstance.model);
-        modelInstance = null;
+        Helper.dispose(modelInstance.model); modelInstance = null;
     }
 }

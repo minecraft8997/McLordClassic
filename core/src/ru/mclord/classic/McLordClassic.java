@@ -1,7 +1,6 @@
 package ru.mclord.classic;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import ru.mclord.classic.events.DisconnectEvent;
 import ru.mclord.classic.events.LevelDownloadingFinishedEvent;
 import ru.mclord.classic.events.PlayerSpawnEvent;
@@ -64,7 +63,7 @@ public class McLordClassic extends Game {
 	/* package-private */ final Thread mainThread;
 	private Properties gameProperties;
 	/* package-private */ final Queue<TaskContainer> taskList = new ArrayDeque<>();
-	/* package-private */ GameStage stage = GameStage.INTERNAL_INITIALIZATION;
+	/* package-private */ GameStage stage;
 	/* package-private */ volatile NetworkingThread networkingThread;
 	/* package-private */ Level level;
 	private boolean levelDownloadFinishedForTheFirstTime = true;
@@ -72,16 +71,6 @@ public class McLordClassic extends Game {
 
 	private McLordClassic() {
 		this.mainThread = Thread.currentThread();
-
-		if (DEBUG) GameParameters.setupDebugProperties();
-		GameParameters.collectAndVerify();
-
-		EventManager.getInstance().registerEventHandler(
-				DisconnectEvent.class, this::handleDisconnect);
-		EventManager.getInstance().registerEventHandler(
-				LevelDownloadingFinishedEvent.class, this::handleLevelDownloadingFinished);
-		EventManager.getInstance().registerEventHandler(
-				PlayerSpawnEvent.class, this::handlePlayerSpawn);
 	}
 
 	public static McLordClassic game() {
@@ -129,6 +118,18 @@ public class McLordClassic extends Game {
 
 	@Override
 	public void create() {
+		setStage(GameStage.INTERNAL_INITIALIZATION);
+
+		if (DEBUG) GameParameters.setupDebugProperties();
+		GameParameters.collectAndVerify();
+
+		EventManager.getInstance().registerEventHandler(
+				DisconnectEvent.class, this::handleDisconnect);
+		EventManager.getInstance().registerEventHandler(
+				LevelDownloadingFinishedEvent.class, this::handleLevelDownloadingFinished);
+		EventManager.getInstance().registerEventHandler(
+				PlayerSpawnEvent.class, this::handlePlayerSpawn);
+
 		System.out.println("Loading texture pack");
 		String configTexturePack = gameProperties.getProperty("texturePack");
 		if (configTexturePack == null || configTexturePack.isEmpty()) {
@@ -172,12 +173,10 @@ public class McLordClassic extends Game {
 					System.exit(-1);
 				}
 				if (container.subscribed) {
-					System.out.println("Attempting to notify");
 					synchronized (container) {
 						container.finished = true;
 						container.notifyAll();
 					}
-					System.out.println("Notified");
 				}
 				if (task instanceof NetworkingRunnable) {
 					synchronized (networkingThread) {

@@ -54,7 +54,7 @@ public class InGameScreen implements Screen {
         environment = new Environment();
         if (!EventManager.getInstance()
                 .fireEvent(CustomizeEnvironmentEvent.create(environment))) {
-            environment = new Environment();
+            environment = null;
         }
 
         Player player = McLordClassic.getPlayer();
@@ -109,7 +109,7 @@ public class InGameScreen implements Screen {
 
     @Override
     public void hide() {
-
+        dispose();
     }
 
     @Override

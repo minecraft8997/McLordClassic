@@ -18,6 +18,7 @@ public class LoadingScreen implements Screen {
     private volatile byte progress;
     private int width;
     private int height;
+    private int i;
 
     private LoadingScreen() {
         font = new BitmapFont();
@@ -48,6 +49,7 @@ public class LoadingScreen implements Screen {
     @Override
     public void show() {
         setProgress((byte) 0);
+        i = (int) (Math.random() * TextureManager.getInstance().getTextureCount());
     }
 
     @Override
@@ -56,10 +58,13 @@ public class LoadingScreen implements Screen {
 
         batch.begin();
         font.draw(batch, (status != null ? status : "Loading"), 32, height - 32);
-        for (int i = 0; i < TextureManager.getInstance().getTextureCount(); i++) {
-            Texture blockTexture = TextureManager.getInstance().getTexture(i);
 
-            int x = i * TextureManager.getInstance().getTextureSize();
+        int textureCount = TextureManager.getInstance().getTextureCount();
+        for (int c = 0; ; c++) {
+            Texture blockTexture = TextureManager.getInstance()
+                    .getTexture((i + c) % textureCount);
+
+            int x = c * TextureManager.getInstance().getTextureSize();
             if (x >= width) break;
             batch.draw(blockTexture, x, PROGRESS_BAR_HEIGHT);
         }
@@ -89,7 +94,7 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void hide() {
-
+        dispose();
     }
 
     @Override

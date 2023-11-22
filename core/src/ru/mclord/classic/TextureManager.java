@@ -22,6 +22,7 @@ public class TextureManager implements Disposable {
         }
     }
 
+    private static int TEXTURE_COUNT_IN_A_ROW = 16;
     public static final String DEFAULT_TEXTURE_PACK =
             "https://static.classicube.net/default.zip";
 
@@ -43,6 +44,14 @@ public class TextureManager implements Disposable {
 
     public static TextureManager getInstance() {
         return INSTANCE;
+    }
+
+    public static void setTextureCountInARow(int textureCountInARow) {
+        if (McLordClassic.game().stage != null) {
+            throw new IllegalStateException();
+        }
+
+        TextureManager.TEXTURE_COUNT_IN_A_ROW = textureCountInARow;
     }
 
     @SuppressWarnings("unchecked")
@@ -83,15 +92,14 @@ public class TextureManager implements Disposable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         int width = image.getWidth();
         int height = image.getHeight();
 
         int textureCount;
-        if (width % 16 != 0) illegalTerrainDimensions();
-        textureSize = width / 16;
+        if (width % TextureManager.TEXTURE_COUNT_IN_A_ROW != 0) illegalTerrainDimensions();
+        textureSize = width / TextureManager.TEXTURE_COUNT_IN_A_ROW;
         if (height % textureSize != 0) illegalTerrainDimensions();
-        textureCount = (height / textureSize) * 16;
+        textureCount = (height / textureSize) * TextureManager.TEXTURE_COUNT_IN_A_ROW;
 
         textures = new Texture[textureCount];
 
@@ -99,8 +107,8 @@ public class TextureManager implements Disposable {
         emptyTexture = new Texture(emptyPixmap);
         temporaryPixmaps.add(emptyPixmap);
 
-        walk(textures, temporaryPixmaps, textures.length, textureSize,
-                textureSize, 16, (pixmap, xOffset, yOffset, x, y) -> {
+        walk(textures, temporaryPixmaps, textures.length, textureSize, textureSize,
+                TEXTURE_COUNT_IN_A_ROW, (pixmap, xOffset, yOffset, x, y) -> {
 
             int color;
             int realX = xOffset + x;
@@ -162,7 +170,7 @@ public class TextureManager implements Disposable {
     public static int textureColorFrom(int bufferedImageColor) {
         byte alpha = (byte) ((bufferedImageColor >> 24) & 0xFF);
         bufferedImageColor <<= 8;
-        bufferedImageColor += alpha;
+        bufferedImageColor |= ((int) alpha) & 0xFF;
         // might be it's possible to optimize this?
 
         return bufferedImageColor;
