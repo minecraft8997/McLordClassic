@@ -61,6 +61,7 @@ public class LoadingScreen implements Screen {
 
             int x = i * TextureManager.getInstance().getTextureSize();
             if (x >= width) break;
+            System.out.println("Drawing at " + x + " " + PROGRESS_BAR_HEIGHT);
             batch.draw(blockTexture, x, PROGRESS_BAR_HEIGHT);
         }
         double percentage = progress / 100.0D;

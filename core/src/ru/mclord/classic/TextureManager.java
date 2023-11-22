@@ -87,17 +87,11 @@ public class TextureManager implements Disposable {
         int width = image.getWidth();
         int height = image.getHeight();
 
-        int textureSize;
-        int textureCount = -1;
-        if (height == width) {
-            textureCount = 256;
-        } else if (height == width * 2) {
-            textureCount = 512;
-        } else {
-            illegalTerrainDimensions();
-        }
+        int textureCount;
         if (width % 16 != 0) illegalTerrainDimensions();
         textureSize = width / 16;
+        if (height % textureSize != 0) illegalTerrainDimensions();
+        textureCount = (height / textureSize) * 16;
 
         textures = new Texture[textureCount];
 
