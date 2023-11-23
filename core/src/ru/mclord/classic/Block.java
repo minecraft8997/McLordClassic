@@ -3,7 +3,7 @@ package ru.mclord.classic;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.utils.Disposable;
 
-public class Block implements Disposable {
+public class Block implements McLordRenderable, Disposable {
     public interface PermissionChecker {
         boolean doIHaveThisPermission();
     }
@@ -108,7 +108,8 @@ public class Block implements Disposable {
         this.backTextureId = backTextureId;
         this.bottomTextureId = bottomTextureId;
     }
-    
+
+    @Override
     public void initGraphics() {
         if (model != null) return;
 

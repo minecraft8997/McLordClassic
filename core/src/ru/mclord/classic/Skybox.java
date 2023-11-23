@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Disposable;
 
-public class Skybox implements Disposable {
+public class Skybox implements McLordRenderable, Disposable {
     private float size;
     private ModelInstance modelInstance;
 
@@ -20,6 +20,7 @@ public class Skybox implements Disposable {
         this.size = size;
     }
 
+    @Override
     public void initGraphics() {
         if (isReady()) return;
 

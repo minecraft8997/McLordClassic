@@ -2,15 +2,11 @@ package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelCache;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.utils.Disposable;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Level implements Disposable {
+public class Level implements McLordRenderable {
     public interface Handler {
         /*
          * Return <code>true</code> if we should continue iterating through
@@ -20,40 +16,55 @@ public class Level implements Disposable {
     }
 
     private final short[][][] blocks;
+    private final Map<Pair<Integer, Integer>, Chunk> chunks;
     private final Map<Byte, Player> players;
     /* package-private */ final int sizeX;
     /* package-private */ final int sizeY;
     /* package-private */ final int sizeZ;
 
-    protected ModelCache modelCache;
+    private boolean graphicsInitialized;
     private boolean searchResult;
 
     public Level(int sizeX, int sizeY, int sizeZ) {
         this.blocks = new short[sizeX][sizeY][sizeZ];
+        this.chunks = new HashMap<>();
         this.players = new HashMap<>();
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
     }
 
-    @ShouldBeCalledBy(thread = "main")
+    @Override
     public void initGraphics() {
-        if (modelCache != null) return;
+        if (graphicsInitialized) return;
 
-        modelCache = new ModelCache();
-        modelCache.begin();
-        iterateThroughLocations((x, y, z) -> {
-            Block block = getBlockDefAt(x, y, z);
-            if (!block.shouldBeRenderedAt(x, y, z)) return true;
+        int endChunkX = (int) Math.ceil((double) sizeX / Chunk.CHUNK_SIZE);
+        int endChunkZ = (int) Math.ceil((double) sizeZ / Chunk.CHUNK_SIZE);
+        for (int chunkX = 0; chunkX < endChunkX; chunkX++) {
+            for (int chunkZ = 0; chunkZ < endChunkZ; chunkZ++) {
+                Chunk chunk = new Chunk(this, chunkX, chunkZ);
+                chunk.initGraphics();
 
-            block.initGraphics();
-            ModelInstance modelInstance = new ModelInstance(block.getModel());
-            modelInstance.transform = new Matrix4().translate(x, y, z);
-            modelCache.add(modelInstance);
+                chunks.put(Pair.of(chunkX, chunkZ), chunk);
+            }
+        }
 
-            return true;
-        });
-        modelCache.end();
+        graphicsInitialized = true;
+    }
+
+    public Chunk getChunk(int x, int z) {
+        return getChunkByChunkCords(Chunk.getChunkX(x), Chunk.getChunkZ(z));
+    }
+
+    public Chunk getChunkByChunkCords(int chunkX, int chunkZ) {
+        Chunk chunk = chunks.get(Pair.of(chunkX, chunkZ));
+        if (chunk == null) {
+            chunk = new Chunk(this, chunkX, chunkZ);
+            // until initGraphics() is called against
+            // this object, we don't have to dispose it
+        }
+
+        return chunk;
     }
 
     @ShouldBeCalledBy(thread = "main")
@@ -112,7 +123,7 @@ public class Level implements Disposable {
 
     @ShouldBeCalledBy(thread = "main")
     public void updateGraphics() {
-        if (modelCache == null) return;
+        if (!graphicsInitialized) return;
 
         dispose();
         initGraphics();
@@ -120,9 +131,11 @@ public class Level implements Disposable {
 
     @ShouldBeCalledBy(thread = "main")
     public void render(ModelBatch modelBatch, Environment environment) {
-        if (modelCache == null) return;
+        if (!graphicsInitialized) return;
 
-        modelBatch.render(modelCache, environment);
+        for (Chunk chunk : chunks.values()) {
+            chunk.render(modelBatch, environment);
+        }
     }
 
     @ShouldBeCalledBy(thread = "main")
@@ -165,6 +178,11 @@ public class Level implements Disposable {
 
     @Override
     public void dispose() {
-        Helper.dispose(modelCache); modelCache = null;
+        for (Chunk chunk : chunks.values()) {
+            chunk.dispose();
+        }
+        chunks.clear();
+
+        graphicsInitialized = false;
     }
 }

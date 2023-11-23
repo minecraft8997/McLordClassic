@@ -23,6 +23,7 @@ public class DesktopLauncher {
 		props.setProperty("fov", "90.0");
 		props.setProperty("xRay", "true");
 		props.setProperty("searchForSkybox", "true");
+		props.setProperty("renderDistance", "64.0");
 
 		File propertiesFile = new File("game.properties");
 		if (propertiesFile.exists()) {

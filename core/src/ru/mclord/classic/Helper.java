@@ -142,6 +142,19 @@ public class Helper {
         return model;
     }
 
+    // thanks to https://stackoverflow.com/a/18157551
+    public static float distanceSquared(Chunk chunk, float pointX, float pointZ) {
+        int realChunkX = Chunk.getX(chunk);
+        int realChunkZ = Chunk.getZ(chunk);
+
+        float dx = Math.max(Math.max(realChunkX - pointX, 0),
+                pointX - (realChunkX + Chunk.CHUNK_SIZE));
+        float dz = Math.max(Math.max(realChunkZ - pointZ, 0),
+                pointZ - (realChunkZ + Chunk.CHUNK_SIZE));
+
+        return dx * dx + dz * dz;
+    }
+
     public static String getStacktrace(Throwable t) {
         StringWriter writer0 = new StringWriter();
         PrintWriter writer = new PrintWriter(writer0);
