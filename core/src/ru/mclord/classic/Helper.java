@@ -1,6 +1,7 @@
 package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -153,6 +154,26 @@ public class Helper {
                 pointZ - (realChunkZ + Chunk.CHUNK_SIZE));
 
         return dx * dx + dz * dz;
+    }
+
+    public static Texture generateCrosshairTexture(int screenWidth, int screenHeight) {
+        int size = Math.max(screenWidth / 40, screenHeight / 40);
+        if (size % 2 != 0) size++;
+
+        int half = size / 2;
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int i = 0; i < size; i++) {
+            pixmap.drawPixel(half, i, 0xFFFFFFFF);
+            pixmap.drawPixel(half + 1, i, 0xFFFFFFFF);
+        }
+        for (int i = 0; i < size; i++) {
+            pixmap.drawPixel(i, half, 0xFFFFFFFF);
+            pixmap.drawPixel(i, half + 1, 0xFFFFFFFF);
+        }
+        Texture result = new Texture(pixmap);
+        pixmap.dispose();
+
+        return result;
     }
 
     public static String getStacktrace(Throwable t) {

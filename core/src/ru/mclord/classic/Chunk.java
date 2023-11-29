@@ -53,7 +53,7 @@ public class Chunk implements McLordRenderable {
 
         int realX = getX(this);
         int realZ = getZ(this);
-        modelCache = new ModelCache();
+        modelCache = new ModelCache(new ModelCache.Sorter(), new ModelCache.TightMeshPool());
         modelCache.begin();
         for (int x = realX; x < realX + CHUNK_SIZE; x++) {
             for (int y = 0; y < level.sizeY; y++) {

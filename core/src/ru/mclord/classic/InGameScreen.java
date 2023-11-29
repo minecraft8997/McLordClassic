@@ -3,6 +3,7 @@ package ru.mclord.classic;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -14,6 +15,7 @@ public class InGameScreen implements Screen {
 
     private BitmapFont font;
     private SpriteBatch spriteBatch;
+    private Texture crosshairTexture;
     private ModelBatch modelBatch;
     private McLordFirstPersonCameraController cameraController;
     private Level level;
@@ -57,12 +59,12 @@ public class InGameScreen implements Screen {
             environment = null;
         }
 
-        Player player = McLordClassic.getPlayer();
         camera = new PerspectiveCamera(
                 fov, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        // camera.position.set(player.spawnLocation.x, player.spawnLocation.y, player.spawnLocation.z);
+        // camera.position.set(player.spawnLocation.x,
+        // player.spawnLocation.y, player.spawnLocation.z);
         camera.position.set(-1.0f, -1.0f, -1.0f);
-        camera.near = 0.35f; // todo might be not the best value
+        camera.near = 0.35f;
         camera.far = 1000000000.0f;
         camera.update();
 
@@ -90,11 +92,18 @@ public class InGameScreen implements Screen {
         }
         level.render(modelBatch, environment);
         modelBatch.end();
+
+        spriteBatch.begin();
+        int size = crosshairTexture.getWidth();
+        spriteBatch.draw(crosshairTexture, Gdx.graphics.getWidth() / 2.0f -
+                size / 2.0f, Gdx.graphics.getHeight() / 2.0f - size / 2.0f);
+        spriteBatch.end();
     }
 
     @Override
     public void resize(int width, int height) {
-
+        Helper.dispose(crosshairTexture);
+        crosshairTexture = Helper.generateCrosshairTexture(width, height);
     }
 
     @Override
@@ -116,6 +125,7 @@ public class InGameScreen implements Screen {
     public void dispose() {
         Helper.dispose(font); font = null;
         Helper.dispose(spriteBatch); spriteBatch = null;
+        Helper.dispose(crosshairTexture); crosshairTexture = null;
         Helper.dispose(modelBatch); modelBatch = null;
         Helper.dispose(level); level = null;
         cameraController = null;
