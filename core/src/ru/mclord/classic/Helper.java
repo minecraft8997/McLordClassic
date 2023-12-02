@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Disposable;
@@ -54,6 +55,20 @@ public class Helper {
             Texture top,
             Texture left,
             Texture right
+    ) {
+        return constructBlock(size, front, back, bottom, top, left, right, null);
+    }
+
+    public static Model constructBlock(
+            float size,
+            Texture front,
+            Texture back,
+            Texture bottom,
+            Texture top,
+            Texture left,
+            Texture right,
+            // many thanks to https://gamedev.stackexchange.com/a/183790
+            FloatAttribute alphaTest
     ) {
         TextureManager manager = TextureManager.getInstance();
         ModelBuilder modelBuilder = new ModelBuilder();
@@ -138,7 +153,13 @@ public class Helper {
         );
         Model model = modelBuilder.end();
 
-        for (Material material : model.materials) material.set(ALPHA);
+        for (Material material : model.materials) {
+            if (alphaTest != null) {
+                material.set(ALPHA, alphaTest);
+            } else {
+                material.set(ALPHA);
+            }
+        }
 
         return model;
     }
@@ -164,11 +185,11 @@ public class Helper {
         Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         for (int i = 0; i < size; i++) {
             pixmap.drawPixel(half, i, 0xFFFFFFFF);
-            pixmap.drawPixel(half + 1, i, 0xFFFFFFFF);
+            pixmap.drawPixel(half - 1, i, 0xFFFFFFFF);
         }
         for (int i = 0; i < size; i++) {
             pixmap.drawPixel(i, half, 0xFFFFFFFF);
-            pixmap.drawPixel(i, half + 1, 0xFFFFFFFF);
+            pixmap.drawPixel(i, half - 1, 0xFFFFFFFF);
         }
         Texture result = new Texture(pixmap);
         pixmap.dispose();

@@ -3,6 +3,8 @@ package ru.mclord.classic;
 import com.badlogic.gdx.utils.Disposable;
 
 public class Player implements Locatable, Disposable {
+    public static final int MAX_CLICK_DISTANCE = 5;
+
     /* package-private */ final byte id;
     /* package-private */ final String username;
     /* package-private */ final Location location;

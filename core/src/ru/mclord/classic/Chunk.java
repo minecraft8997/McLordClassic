@@ -53,7 +53,8 @@ public class Chunk implements McLordRenderable {
 
         int realX = getX(this);
         int realZ = getZ(this);
-        modelCache = new ModelCache(new ModelCache.Sorter(), new ModelCache.TightMeshPool());
+        modelCache = new ModelCache(
+                new ModelCache.Sorter(), new ModelCache.TightMeshPool());
         modelCache.begin();
         for (int x = realX; x < realX + CHUNK_SIZE; x++) {
             for (int y = 0; y < level.sizeY; y++) {
@@ -63,7 +64,7 @@ public class Chunk implements McLordRenderable {
 
                     block.initGraphics();
                     ModelInstance modelInstance = new ModelInstance(block.getModel(),
-                            new Matrix4().translate(x, y, z), (String[]) null);
+                            (new Matrix4()).translate(x, y, z), (String[]) null);
                     modelCache.add(modelInstance);
                 }
             }
@@ -76,8 +77,8 @@ public class Chunk implements McLordRenderable {
         if (modelCache == null) return;
 
         Camera camera = modelBatch.getCamera();
-        float distanceSquared =
-                Helper.distanceSquared(this, camera.position.x, camera.position.z);
+        float distanceSquared = Helper
+                .distanceSquared(this, camera.position.x, camera.position.z);
         if (distanceSquared > RENDER_DISTANCE_SQUARED) return;
 
         modelBatch.render(modelCache, environment);

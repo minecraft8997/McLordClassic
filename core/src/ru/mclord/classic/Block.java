@@ -1,6 +1,7 @@
 package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.utils.Disposable;
 
 public class Block implements McLordRenderable, Disposable {
@@ -48,7 +49,9 @@ public class Block implements McLordRenderable, Disposable {
     /* package-private */ final int backTextureId;
     /* package-private */ final int bottomTextureId;
 
-    protected Model model;
+    private Model model;
+    private boolean alphaTestEnabled = true;
+    private float alphaTestValue = 0.5f;
 
     public Block(
             short id,
@@ -109,6 +112,9 @@ public class Block implements McLordRenderable, Disposable {
         this.bottomTextureId = bottomTextureId;
     }
 
+    public void onBlockRegister() {
+    }
+
     @Override
     public void initGraphics() {
         if (model != null) return;
@@ -121,12 +127,33 @@ public class Block implements McLordRenderable, Disposable {
                 manager.getTexture(bottomTextureId),
                 manager.getTexture(topTextureId),
                 manager.getTexture(leftTextureId),
-                manager.getTexture(rightTextureId)
+                manager.getTexture(rightTextureId),
+                (alphaTestEnabled ? FloatAttribute.createAlphaTest(alphaTestValue) : null)
         );
     }
 
     public final Model getModel() {
         return model;
+    }
+
+    protected final void setModel(Model model) {
+        this.model = model;
+    }
+
+    protected final boolean isAlphaTestEnabled() {
+        return alphaTestEnabled;
+    }
+
+    protected final void setAlphaTestEnabled(boolean alphaTestEnabled) {
+        this.alphaTestEnabled = alphaTestEnabled;
+    }
+
+    protected final float getAlphaTestValue() {
+        return alphaTestValue;
+    }
+
+    protected final void setAlphaTestValue(float alphaTestValue) {
+        this.alphaTestValue = alphaTestValue;
     }
 
     public final short getId() {

@@ -16,4 +16,8 @@ public interface Plugin {
     }
 
     default void message(String description, Object message) throws Exception {}
+
+    default void levelRenderStart() {}
+
+    default void levelRenderFinish() {}
 }

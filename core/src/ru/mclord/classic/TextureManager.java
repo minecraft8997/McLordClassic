@@ -34,7 +34,8 @@ public class TextureManager implements Disposable {
     /* package-private */ int textureSize;
     private final List<Pixmap> temporaryPixmaps = new ArrayList<>();
     private final List<Texture> temporaryTextures;
-    private Texture emptyTexture;
+    /* package-private */ Texture emptyTexture;
+    /* package-private */ Texture aimedBlockTexture;
 
     private TextureManager() {
         this.searchForSkybox = Boolean.parseBoolean(
@@ -106,6 +107,15 @@ public class TextureManager implements Disposable {
         Pixmap emptyPixmap = new Pixmap(textureSize, textureSize, Pixmap.Format.RGBA8888);
         emptyTexture = new Texture(emptyPixmap);
         temporaryPixmaps.add(emptyPixmap);
+
+        Pixmap aimedBlockPixmap = new Pixmap(textureSize, textureSize, Pixmap.Format.RGBA8888);
+        for (int i = 0; i < textureSize; i++) {
+            for (int j = 0; j < textureSize; j++) {
+                aimedBlockPixmap.drawPixel(i, j, 0xFFFFFF0F); // 15%
+            }
+        }
+        aimedBlockTexture = new Texture(aimedBlockPixmap);
+        temporaryPixmaps.add(aimedBlockPixmap);
 
         walk(textures, temporaryPixmaps, textures.length, textureSize, textureSize,
                 TEXTURE_COUNT_IN_A_ROW, (pixmap, xOffset, yOffset, x, y) -> {
@@ -274,6 +284,10 @@ public class TextureManager implements Disposable {
         return emptyTexture;
     }
 
+    public Texture getAimedBlockTexture() {
+        return aimedBlockTexture;
+    }
+
     public int getTextureCount() {
         return textures.length;
     }
@@ -346,6 +360,7 @@ public class TextureManager implements Disposable {
     @ShouldBeCalledBy(thread = "main")
     public void dispose() {
         Helper.dispose(emptyTexture);
+        Helper.dispose(aimedBlockTexture);
         if (textures != null) {
             for (Texture texture : textures) {
                 Helper.dispose(texture);

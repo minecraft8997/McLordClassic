@@ -56,6 +56,8 @@ public class Skybox implements McLordRenderable, Disposable {
 
     @Override
     public void dispose() {
-        Helper.dispose(modelInstance.model); modelInstance = null;
+        if (modelInstance != null) {
+            Helper.dispose(modelInstance.model); modelInstance = null;
+        }
     }
 }

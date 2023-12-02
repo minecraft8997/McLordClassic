@@ -2,6 +2,7 @@ package ru.mclord.classic;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,19 +53,40 @@ public class Level implements McLordRenderable {
         graphicsInitialized = true;
     }
 
+    /*
+     * Thanks to devquickie.
+     * https://gitlab.com/devquickie/minecraft-clone
+     *
+     * src/com/devquickie/minecraftclone/Grid.java#L63
+     */
+    public Vector3 findAimedBlock(Vector3 startingPoint, Vector3 direction) {
+        // int finish = Math.max(Math.max(sizeX, sizeY), sizeZ) * 2;
+        for (int i = 1; i <= Player.MAX_CLICK_DISTANCE; i++) {
+            Vector3 tmpStartingPoint = new Vector3(startingPoint);
+            Vector3 tmpDirection = new Vector3(direction);
+            Vector3 line = tmpStartingPoint.add(tmpDirection.nor().scl(i));
+            int x = Math.round(line.x);
+            int y = Math.round(line.y);
+            int z = Math.round(line.z);
+
+            if (x >= sizeX || y >= sizeY || z >= sizeZ || x < 0 || y < 0 || z < 0) {
+                break;
+            }
+            Block block = getBlockDefAt(x, y, z);
+            if (block.shouldBeRenderedAt(x, y, z)) {
+                return new Vector3(x, y, z);
+            }
+        }
+
+        return null;
+    }
+
     public Chunk getChunk(int x, int z) {
         return getChunkByChunkCords(Chunk.getChunkX(x), Chunk.getChunkZ(z));
     }
 
     public Chunk getChunkByChunkCords(int chunkX, int chunkZ) {
-        Chunk chunk = chunks.get(Pair.of(chunkX, chunkZ));
-        if (chunk == null) {
-            chunk = new Chunk(this, chunkX, chunkZ);
-            // until initGraphics() is called against
-            // this object, we don't have to dispose it
-        }
-
-        return chunk;
+        return chunks.get(Pair.of(chunkX, chunkZ));
     }
 
     @ShouldBeCalledBy(thread = "main")

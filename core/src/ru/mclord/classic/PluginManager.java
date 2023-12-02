@@ -25,6 +25,7 @@ public class PluginManager {
             .parseInt(System.getProperty("mclordMaxPluginAttempts", "100"));
 
     private final Map<String, Plugin> pluginMap = new HashMap<>();
+    private Plugin corePlugin;
     private Integer keyHashCode;
 
     static {
@@ -241,6 +242,8 @@ public class PluginManager {
                                 keyHashCode = key.hashCode();
 
                                 plugin.message(key);
+
+                                this.corePlugin = plugin;
                             }
                             plugin.preInit();
                         } catch (Throwable t) {
@@ -284,6 +287,11 @@ public class PluginManager {
     @ShouldBeCalledBy(thread = "main")
     public Plugin getPlugin(String name) {
         return pluginMap.get(name);
+    }
+
+    @ShouldBeCalledBy(thread = "main")
+    /* package-private */ Plugin getCorePlugin() {
+        return corePlugin;
     }
 
     // is called by a plugin
