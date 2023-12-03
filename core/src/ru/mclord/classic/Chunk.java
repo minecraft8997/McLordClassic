@@ -60,9 +60,10 @@ public class Chunk implements McLordRenderable {
             for (int y = 0; y < level.sizeY; y++) {
                 for (int z = realZ; z < realZ + CHUNK_SIZE; z++) {
                     Block block = level.getBlockDefAt(x, y, z);
+                    block.initGraphics();
+
                     if (!block.shouldBeRenderedAt(x, y, z)) continue;
 
-                    block.initGraphics();
                     ModelInstance modelInstance = new ModelInstance(block.getModel(),
                             (new Matrix4()).translate(x, y, z), (String[]) null);
                     modelCache.add(modelInstance);

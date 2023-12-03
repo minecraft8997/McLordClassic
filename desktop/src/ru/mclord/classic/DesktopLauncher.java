@@ -49,7 +49,7 @@ public class DesktopLauncher {
 		config.useVsync(vsync);
 		config.disableAudio(!audio);
 		config.setHdpiMode(hdpiMode);
-		config.setTitle("McLordClassic");
+		config.setTitle("McLordClassic v" + McLordClassic.VERSION);
 		config.setWindowIcon();
 
 		new Lwjgl3Application(McLordClassic.game().linkProperties(props), config);

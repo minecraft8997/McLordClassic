@@ -186,6 +186,14 @@ public class TextureManager implements Disposable {
         return bufferedImageColor;
     }
 
+    public void addTemporaryPixmap(Pixmap pixmap) {
+        temporaryPixmaps.add(pixmap);
+    }
+
+    public void addTemporaryTexture(Texture texture) {
+        temporaryTextures.add(texture);
+    }
+
     public void walk(
             Texture[] textures,
             List<Pixmap> temporaryPixmaps,

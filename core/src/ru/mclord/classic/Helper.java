@@ -164,6 +164,12 @@ public class Helper {
         return model;
     }
 
+    /* package-private */ static void disposeBlocks() {
+        for (Block block : BlockManager.getInstance().enumerateBlocksFast()) {
+            block.dispose();
+        }
+    }
+
     // thanks to https://stackoverflow.com/a/18157551
     public static float distanceSquared(Chunk chunk, float pointX, float pointZ) {
         int realChunkX = Chunk.getX(chunk);

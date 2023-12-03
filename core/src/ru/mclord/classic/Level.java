@@ -49,6 +49,7 @@ public class Level implements McLordRenderable {
                 chunks.put(Pair.of(chunkX, chunkZ), chunk);
             }
         }
+        Helper.disposeBlocks();
 
         graphicsInitialized = true;
     }

@@ -39,8 +39,9 @@ public class BlockManager implements Manager {
             throw new IllegalArgumentException(
                     "Specified block ID (" + block.id + ") is already registered");
         }
-
         REGISTERED_BLOCKS.put(block.id, block);
+
+        block.onBlockRegister();
     }
 
     @ShouldBeCalledBy(thread = "main")

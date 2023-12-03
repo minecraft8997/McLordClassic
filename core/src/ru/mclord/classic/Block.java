@@ -1,5 +1,7 @@
 package ru.mclord.classic;
 
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.utils.Disposable;
@@ -52,6 +54,7 @@ public class Block implements McLordRenderable, Disposable {
     private Model model;
     private boolean alphaTestEnabled = true;
     private float alphaTestValue = 0.5f;
+    /* package-private */ boolean hasSomeTransparency;
 
     public Block(
             short id,
@@ -122,14 +125,41 @@ public class Block implements McLordRenderable, Disposable {
         TextureManager manager = TextureManager.getInstance();
 
         model = Helper.constructBlock(0.5f,
-                manager.getTexture(frontTextureId),
-                manager.getTexture(backTextureId),
-                manager.getTexture(bottomTextureId),
-                manager.getTexture(topTextureId),
-                manager.getTexture(leftTextureId),
-                manager.getTexture(rightTextureId),
+                checkTransparency(manager.getTexture(frontTextureId)),
+                checkTransparency(manager.getTexture(backTextureId)),
+                checkTransparency(manager.getTexture(bottomTextureId)),
+                checkTransparency(manager.getTexture(topTextureId)),
+                checkTransparency(manager.getTexture(leftTextureId)),
+                checkTransparency(manager.getTexture(rightTextureId)),
                 (alphaTestEnabled ? FloatAttribute.createAlphaTest(alphaTestValue) : null)
         );
+    }
+
+    private Texture checkTransparency(Texture texture) {
+        if (hasSomeTransparency) return texture;
+
+        boolean wasNotPrepared = false;
+        if (!texture.getTextureData().isPrepared()) {
+            texture.getTextureData().prepare();
+
+            wasNotPrepared = true;
+        }
+        Pixmap pixmap = texture.getTextureData().consumePixmap();
+        if (wasNotPrepared) {
+            TextureManager.getInstance().addTemporaryPixmap(pixmap);
+        }
+        for (int i = 0; i < pixmap.getWidth(); i++) {
+            for (int j = 0; j < pixmap.getHeight(); j++) {
+                byte alpha = (byte) (pixmap.getPixel(i, j) & 0xFF);
+                if (alpha != -1) {
+                    hasSomeTransparency = true;
+
+                    return texture;
+                }
+            }
+        }
+
+        return texture;
     }
 
     public final Model getModel() {
@@ -194,7 +224,8 @@ public class Block implements McLordRenderable, Disposable {
         neighbors[4] = level.getBlockDefAt(x, y + 1, z);
         neighbors[5] = level.getBlockDefAt(x, y - 1, z);
         for (Block neighbor : neighbors) {
-            if (neighbor.solidity != Solidity.SOLID || neighbor.slab) return true;
+            if (neighbor.solidity != Solidity.SOLID ||
+                    neighbor.slab || neighbor.hasSomeTransparency) return true;
         }
 
         return false;
